@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from imageInteraction.models import ImageModelBasicInfo
 from numbersInteraction.models import NumbersModelBasicInfo
 from textInteraction.models import TextModelBasicInfo
-from .interact import stu_get_models, delete_models, edit_models, teach_get_models
+from .interact import stu_get_models, delete_models, text_edit_model, numbers_edit_model, image_edit_model, teach_get_models
 
 
 class API:
@@ -60,7 +60,44 @@ class API:
             return Response(ret_msg)
 
     @api_view(['GET', 'POST'])
-    def edit_models(request, format=None):
+    def text_edit_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            train_data, params, algorithm, is_public = text_edit_model(data["username"], data["modelName"])
+            return Response({
+                "trainData": train_data,
+                "params": params,
+                "algorithm": algorithm,
+                "isPublic": is_public
+            })
+
+    @api_view(['GET', 'POST'])
+    def numbers_edit_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            train_data, value_data, params, algorithm, is_public = numbers_edit_model(data["username"], data["modelName"])
+            return Response({
+                "trainData": train_data,
+                "valueData": value_data,
+                "params": params,
+                "algorithm": algorithm,
+                "isPublic": is_public
+            })
+
+    @api_view(['GET', 'POST'])
+    def image_edit_model(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
