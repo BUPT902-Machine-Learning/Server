@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'classInfo',
     'cooperation',
-    'ImageClassifier'
+    'imageInteraction'
 ]
 
 MIDDLEWARE = [
