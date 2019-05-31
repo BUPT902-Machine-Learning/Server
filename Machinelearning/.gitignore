@@ -1,0 +1,17 @@
+.DS_Store
+data/cnews
+data/thucnews
+__pycache__
+cnn_keras.py
+.idea
+*.pyc
+checkpoints
+tensorboard
+classInfo/migrations
+cooperation/migrations
+textInteraction/migrations
+numbersInteraction/migrations
+imageInteraction/migrations
+modelOperation//migrations
+scratch3/migrations
+users/migrations
