@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from ImageClassifier.models import ImageModelBasicInfo
+from imageInteraction.models import ImageModelBasicInfo
 from numbersInteraction.models import NumbersModelBasicInfo
 from textInteraction.models import TextModelBasicInfo
 from .interact import stu_get_models, delete_models, text_edit_model, numbers_edit_model, image_edit_model, teach_get_models

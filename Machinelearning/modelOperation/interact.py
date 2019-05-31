@@ -1,7 +1,7 @@
 import time
 import datetime
 
-from ImageClassifier.models import ImageModelBasicInfo
+from imageInteraction.models import ImageModelBasicInfo
 from numbersInteraction.models import NumbersModelBasicInfo, NumbersTrainData, NumbersLabelMap, NumbersCNNParams, \
     NumbersRNNParams, NumbersKNNParams, ValueSetData
 from textInteraction.models import TextModelBasicInfo, TextTrainData, TextCNNParams, TextLabelMap, TextRNNParams, TextKNNParams

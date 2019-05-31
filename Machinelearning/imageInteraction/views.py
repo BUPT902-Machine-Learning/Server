@@ -1,12 +1,13 @@
 import copy
 from users.models import Users
-from ImageClassifier.models import ImageModelBasicInfo, LabelMap, TrainData
+from imageInteraction.models import ImageModelBasicInfo, TrainData
 from Machinelearning import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import os
 from Machinelearning.settings import BASE_DIR
-from ImageClassifier.coreAlgorithmForImage import DataAugmentation, FeatureObtainer, ModelTraining, ModelTesting
+from imageDataProcess import FeatureObtainer, DataAugmentation
+from imageCoreAlgorithm import ModelTesting, ModelTraining
 from modelOperation.interact import utc2local
 from users.models import Student
 from classInfo.models import Teacher
@@ -15,7 +16,7 @@ TRAINDATA_ROOT = os.path.join(BASE_DIR, "media").replace('\\', '/')  # media即�
 
 class ImageClassifierAPI:
     @api_view(['GET', 'POST'])
-    def tech_get_co_model(request, format=None):
+    def teach_get_co_model(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -34,95 +35,95 @@ class ImageClassifierAPI:
             print(request.data)
             return Response("todo")
 
-    @api_view(['GET', 'POST'])
-    def tech_get_model(request, format=None):
-        if request.method == 'GET':
-            print("GET")
-            return Response()
-        elif request.method == 'POST':
-            print("POST")
-            print(request.data)
-            data = request.data
-            my_models = []
-            stu_models = []
-            db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0, model_type=2)
-            for item in db_models:
-                model = {}
-                data_create = utc2local(item.data_create)
-                data_update = utc2local(item.data_update)
-                model["cn_name"] = item.cn_name
-                model["algorithm"] = item.algorithm
-                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-                my_models.append(model)
-
-            db_student = Student.objects.filter(class_no=data["class_no"])
-            for item in db_student:
-                db_models = ImageModelBasicInfo.objects.filter(user_belong=item.student_name, delete_status=0,
-                                                               public_status=1)
-                stu_model = []
-                for item2 in db_models:
-                    model = {}
-                    data_create = utc2local(item2.data_create)
-                    data_update = utc2local(item2.data_update)
-                    model["user_name"] = item.student_name
-                    model["en_name"] = item2.en_name
-                    model["algorithm"] = item2.algorithm
-                    model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-                    model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-                    stu_model.append(model)
-
-                stu_models.append(stu_model)
-            return Response({
-                "my_models": my_models,
-                "stu_models": stu_models
-            })
-
-    @api_view(['GET', 'POST'])
-    def stu_get_model(request, format=None):
-        if request.method == 'GET':
-            print("GET")
-            return Response()
-
-        elif request.method == 'POST':
-            print("POST")
-            print(request.data)
-            data = request.data
-            my_models = []
-            tech_models = []
-            db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0)
-            for item in db_models:
-                model = {}
-                data_create = utc2local(item.data_create)
-                data_update = utc2local(item.data_update)
-                model["cn_name"] = item.cn_name
-                model["algorithm"] = item.algorithm
-                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-                my_models.append(model)
-            try:
-                db_teacher = Teacher.objects.get(class_no=data["class_no"])
-                db_models = ImageModelBasicInfo.objects.filter(user_belong=db_teacher.teacher_name, delete_status=0,
-                                                               public_status=1, model_type=2)
-
-            except Exception as e:
-                return my_models, False
-
-            for item in db_models:
-                model = {}
-                data_create = utc2local(item.data_create)
-                data_update = utc2local(item.data_update)
-                model["tech_name"] = db_teacher.teacher_name
-                model["cn_name"] = item.cn_name
-                model["algorithm"] = item.algorithm
-                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-                tech_models.append(model)
-
-            return Response({
-                "my_models": my_models,
-                "tech_models": tech_models
-            })
+    # @api_view(['GET', 'POST'])
+    # def teach_get_model(request, format=None):
+    #     if request.method == 'GET':
+    #         print("GET")
+    #         return Response()
+    #     elif request.method == 'POST':
+    #         print("POST")
+    #         print(request.data)
+    #         data = request.data
+    #         my_models = []
+    #         stu_models = []
+    #         db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0, model_type=2)
+    #         for item in db_models:
+    #             model = {}
+    #             data_create = utc2local(item.data_create)
+    #             data_update = utc2local(item.data_update)
+    #             model["cn_name"] = item.cn_name
+    #             model["algorithm"] = item.algorithm
+    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+    #             my_models.append(model)
+    #
+    #         db_student = Student.objects.filter(class_no=data["class_no"])
+    #         for item in db_student:
+    #             db_models = ImageModelBasicInfo.objects.filter(user_belong=item.student_name, delete_status=0,
+    #                                                            public_status=1)
+    #             stu_model = []
+    #             for item2 in db_models:
+    #                 model = {}
+    #                 data_create = utc2local(item2.data_create)
+    #                 data_update = utc2local(item2.data_update)
+    #                 model["user_name"] = item.student_name
+    #                 model["en_name"] = item2.en_name
+    #                 model["algorithm"] = item2.algorithm
+    #                 model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+    #                 model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+    #                 stu_model.append(model)
+    #
+    #             stu_models.append(stu_model)
+    #         return Response({
+    #             "my_models": my_models,
+    #             "stu_models": stu_models
+    #         })
+    #
+    # @api_view(['GET', 'POST'])
+    # def stu_get_model(request, format=None):
+    #     if request.method == 'GET':
+    #         print("GET")
+    #         return Response()
+    #
+    #     elif request.method == 'POST':
+    #         print("POST")
+    #         print(request.data)
+    #         data = request.data
+    #         my_models = []
+    #         tech_models = []
+    #         db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0)
+    #         for item in db_models:
+    #             model = {}
+    #             data_create = utc2local(item.data_create)
+    #             data_update = utc2local(item.data_update)
+    #             model["cn_name"] = item.cn_name
+    #             model["algorithm"] = item.algorithm
+    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+    #             my_models.append(model)
+    #         try:
+    #             db_teacher = Teacher.objects.get(class_no=data["class_no"])
+    #             db_models = ImageModelBasicInfo.objects.filter(user_belong=db_teacher.teacher_name, delete_status=0,
+    #                                                            public_status=1, model_type=2)
+    #
+    #         except Exception as e:
+    #             return my_models, False
+    #
+    #         for item in db_models:
+    #             model = {}
+    #             data_create = utc2local(item.data_create)
+    #             data_update = utc2local(item.data_update)
+    #             model["tech_name"] = db_teacher.teacher_name
+    #             model["cn_name"] = item.cn_name
+    #             model["algorithm"] = item.algorithm
+    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+    #             tech_models.append(model)
+    #
+    #         return Response({
+    #             "my_models": my_models,
+    #             "tech_models": tech_models
+    #         })
 
     @api_view(['GET', 'POST'])
     def save_data(request, format=None):
@@ -216,7 +217,7 @@ class ImageClassifierAPI:
                                                delete_status=0,
                                                public_status=1,
                                                train_status=0,
-                                               model_type=2)
+                                               model_type=1)
                 count = ImageModelBasicInfo.objects.all().count()
                 imgModel.en_name = "model" + str(count)
                 modelNameCheck = ImageModelBasicInfo.objects.get(user_belong=user_belong,
@@ -274,6 +275,7 @@ class ImageClassifierAPI:
                 labels_to_save = labels_to_save[:-1]
                 model_info_update.labels = labels_to_save
                 model_info_update.train_status = 1
+                model_info_update.public_status = request.data.get('publicStatus')
                 model_info_update.save()
                 # 生成标签对应表，便于训练和测试的统一
                 y_dict = {}
