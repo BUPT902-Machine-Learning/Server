@@ -19,7 +19,7 @@ from users import views as users_views
 from modelOperation import views as model_operation_views
 from Machinelearning import settings
 from django.conf.urls.static import static
-from adaptive import views as adaptive_views
+
 
 router = routers.DefaultRouter()
 # Wire up our API using automatic URL routing.
@@ -31,12 +31,9 @@ urlpatterns = [
     url(r'^api/stuGetModels/$', model_operation_views.API.stu_get_models),
     url(r'^api/teachGetModels/$', model_operation_views.API.teach_get_models),
     url(r'^api/deleteModel/$', model_operation_views.API.delete_model),
-    url(r'^api/editModels/$', model_operation_views.API.edit_models),
     url(r'^api/namedCheck/$', model_operation_views.API.named_check),
     url(r'^api/text/', include('textInteraction.urls')),
     url(r'^api/numbers/', include('numbersInteraction.urls')),
-    url(r'^api/text/optimalTrain/$', adaptive_views.API.text_train),
-    url(r'^api/numbers/optimalTrain/$', adaptive_views.API.numbers_train),
     # url(r'^api/adaptive/$', adaptiveViews.api.traindata),
     # url(r'^api/adaptivetest/$', adaptiveViews.api.testdata),
     url(r'^api/cooperation/', include('cooperation.urls')),
