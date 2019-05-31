@@ -3,8 +3,8 @@ from numbersInteraction.models import NumbersModelBasicInfo, NumbersLabelMap
 
 
 def knn_test_data(raw_data):
-    test_data = raw_data["test_data"]
-    cn_name = raw_data["model_name"]
+    test_data = raw_data["testData"]
+    cn_name = raw_data["modelName"]
     username = raw_data["username"]
     response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
     en_name = response.en_name
