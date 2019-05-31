@@ -15,3 +15,6 @@ imageInteraction/migrations
 modelOperation//migrations
 scratch3/migrations
 users/migrations
+aug_images
+image_model
+media
