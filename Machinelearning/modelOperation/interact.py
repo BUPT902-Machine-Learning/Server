@@ -308,7 +308,7 @@ def stu_get_models(username, class_no):
         teach_models.append(model)
 
     db_models = NumbersModelBasicInfo.objects.filter(user_belong=db_teacher.teacher_name, delete_status=0,
-                                                  public_status=1, model_type=1)
+                                                     public_status=1, model_type=1)
     for item in db_models:
         model = {}
         data_create = utc2local(item.data_create)
@@ -322,7 +322,7 @@ def stu_get_models(username, class_no):
         teach_models.append(model)
 
     db_models = ImageModelBasicInfo.objects.filter(user_belong=db_teacher.teacher_name, delete_status=0,
-                                                  public_status=1, model_type=1)
+                                                   public_status=1, model_type=1)
     for item in db_models:
         model = {}
         data_create = utc2local(item.data_create)

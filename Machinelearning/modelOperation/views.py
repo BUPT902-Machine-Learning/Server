@@ -106,7 +106,7 @@ class API:
             print("POST")
             print(request.data)
             data = request.data
-            train_data, params, algorithm, is_public = edit_models(data["username"], data["modelName"])
+            train_data, params, algorithm, is_public = image_edit_model(data["username"], data["modelName"])
             return Response({
                 "trainData": train_data,
                 "params": params,
