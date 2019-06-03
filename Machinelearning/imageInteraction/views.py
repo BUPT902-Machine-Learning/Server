@@ -1,17 +1,16 @@
 import copy
 from users.models import Users
-from imageInteraction.models import ImageModelBasicInfo, TrainData
+from imageInteraction.models import ImageModelBasicInfo, TrainData, LabelMap
 from Machinelearning import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import os
 from Machinelearning.settings import BASE_DIR
-from imageDataProcess import FeatureObtainer, DataAugmentation
+from imageDataProcess import FeatureObtainer, DataAugmentation, FilesDelete
 from imageCoreAlgorithm import ModelTesting, ModelTraining
-from modelOperation.interact import utc2local
-from users.models import Student
-from classInfo.models import Teacher
-TRAINDATA_ROOT = os.path.join(BASE_DIR, "media").replace('\\', '/')  # media即为图片上传的根路径
+TRAIN_DATA_ROOT = os.path.join(BASE_DIR, "media").replace('\\', '/')  # media即为图片上传的根路径
+AUG_ROOT = os.path.join(BASE_DIR, "aug_images").replace('\\', '/')
+MODEL_ROOT = os.path.join(BASE_DIR, "image_model").replace('\\', '/')
 
 
 class ImageClassifierAPI:
@@ -34,96 +33,6 @@ class ImageClassifierAPI:
             print("POST")
             print(request.data)
             return Response("todo")
-
-    # @api_view(['GET', 'POST'])
-    # def teach_get_model(request, format=None):
-    #     if request.method == 'GET':
-    #         print("GET")
-    #         return Response()
-    #     elif request.method == 'POST':
-    #         print("POST")
-    #         print(request.data)
-    #         data = request.data
-    #         my_models = []
-    #         stu_models = []
-    #         db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0, model_type=2)
-    #         for item in db_models:
-    #             model = {}
-    #             data_create = utc2local(item.data_create)
-    #             data_update = utc2local(item.data_update)
-    #             model["cn_name"] = item.cn_name
-    #             model["algorithm"] = item.algorithm
-    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-    #             my_models.append(model)
-    #
-    #         db_student = Student.objects.filter(class_no=data["class_no"])
-    #         for item in db_student:
-    #             db_models = ImageModelBasicInfo.objects.filter(user_belong=item.student_name, delete_status=0,
-    #                                                            public_status=1)
-    #             stu_model = []
-    #             for item2 in db_models:
-    #                 model = {}
-    #                 data_create = utc2local(item2.data_create)
-    #                 data_update = utc2local(item2.data_update)
-    #                 model["user_name"] = item.student_name
-    #                 model["en_name"] = item2.en_name
-    #                 model["algorithm"] = item2.algorithm
-    #                 model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-    #                 model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-    #                 stu_model.append(model)
-    #
-    #             stu_models.append(stu_model)
-    #         return Response({
-    #             "my_models": my_models,
-    #             "stu_models": stu_models
-    #         })
-    #
-    # @api_view(['GET', 'POST'])
-    # def stu_get_model(request, format=None):
-    #     if request.method == 'GET':
-    #         print("GET")
-    #         return Response()
-    #
-    #     elif request.method == 'POST':
-    #         print("POST")
-    #         print(request.data)
-    #         data = request.data
-    #         my_models = []
-    #         tech_models = []
-    #         db_models = ImageModelBasicInfo.objects.filter(user_belong=data["username"], delete_status=0)
-    #         for item in db_models:
-    #             model = {}
-    #             data_create = utc2local(item.data_create)
-    #             data_update = utc2local(item.data_update)
-    #             model["cn_name"] = item.cn_name
-    #             model["algorithm"] = item.algorithm
-    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-    #             my_models.append(model)
-    #         try:
-    #             db_teacher = Teacher.objects.get(class_no=data["class_no"])
-    #             db_models = ImageModelBasicInfo.objects.filter(user_belong=db_teacher.teacher_name, delete_status=0,
-    #                                                            public_status=1, model_type=2)
-    #
-    #         except Exception as e:
-    #             return my_models, False
-    #
-    #         for item in db_models:
-    #             model = {}
-    #             data_create = utc2local(item.data_create)
-    #             data_update = utc2local(item.data_update)
-    #             model["tech_name"] = db_teacher.teacher_name
-    #             model["cn_name"] = item.cn_name
-    #             model["algorithm"] = item.algorithm
-    #             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
-    #             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
-    #             tech_models.append(model)
-    #
-    #         return Response({
-    #             "my_models": my_models,
-    #             "tech_models": tech_models
-    #         })
 
     @api_view(['GET', 'POST'])
     def save_data(request, format=None):
@@ -164,7 +73,7 @@ class ImageClassifierAPI:
         elif request.method == 'POST':
             print("POST")
             try:
-                modelName = ImageModelBasicInfo.objects.get(en_name=request.data.get('modelName'))
+                modelName = ImageModelBasicInfo.objects.get(cn_name=request.data.get('modelName'))
                 img = TrainData.objects.get(model_name=modelName,
                                             label=request.data.get('label'),
                                             imgName=request.data.get('imgName'))
@@ -238,16 +147,20 @@ class ImageClassifierAPI:
             print("POST")
             try:
                 # delete in database
-                modelName = ImageModelBasicInfo.objects.get(en_name=request.data.get('modelName'))
-                TrainData.objects.filter(model_name=modelName).delete()
-                User_belong = Users.objects.get(username=request.data.get('userName'))
-                ImageModelBasicInfo.objects.filter(user_belong=User_belong).delete()
-                # delete the file
-                modelFileName = request.data.get('modelName')
-                filePath = os.path.join(settings.MEDIA_ROOT, modelFileName).replace('\\', '/')
-                if os.path.isdir(filePath):
-                    os.rmdir(filePath)
-                    return Response("Delete Model Success")
+                user_belong = Users.objects.get(username=request.data.get('userName'))
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'))
+                TrainData.objects.filter(user_belong=user_belong, model_name=model_name).delete()
+                LabelMap.objects.filter(model_name=model_name).delete()
+                ImageModelBasicInfo.objects.filter(user_belong=user_belong,cn_name=request.data.get('modelName')).delete()
+                # print("test")
+                # delete the files
+                model_file_name = model_name.en_name
+                file_path_list = [os.path.join(settings.MEDIA_ROOT, model_file_name).replace('\\', '/'),
+                                  os.path.join(AUG_ROOT, model_file_name).replace('\\', '/'),
+                                  os.path.join(MODEL_ROOT, model_file_name+"_svm.m").replace('\\', '/')]
+                for filePath in file_path_list:
+                    FilesDelete.file_delete(filePath)
+                return Response("Delete Model Success")
             except Exception as e:
                 return Response("Delete Model Failed")
             return Response("Unknown Error of Model Deleting")
@@ -266,10 +179,15 @@ class ImageClassifierAPI:
                 user_belong = Users.objects.get(username=request.data.get('userName'))
                 model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                                     cn_name=request.data.get('modelName'))
-
+                label_map = LabelMap.objects.create(model_name=model_info_update)
                 labels_list = request.data.get('label')
                 labels_to_save = ""
+                maps_to_save = ""
+                map_start = 0
                 for label in labels_list:
+                    maps_to_save += str(map_start)
+                    maps_to_save += ","
+                    map_start += 1
                     labels_to_save += label
                     labels_to_save += ","
                 labels_to_save = labels_to_save[:-1]
@@ -277,13 +195,18 @@ class ImageClassifierAPI:
                 model_info_update.train_status = 1
                 model_info_update.public_status = request.data.get('publicStatus')
                 model_info_update.save()
+
+                maps_to_save = maps_to_save[:-1]
+                label_map.real_labels = labels_to_save
+                label_map.train_labels = maps_to_save
+                label_map.save()
                 # 生成标签对应表，便于训练和测试的统一
                 y_dict = {}
-                label_id = 0
-                label_list = model_info_update.labels.split(",")
-                for label in label_list:
-                    y_dict.update({label: label_id})
-                    label_id += 1
+                y_dict_map = LabelMap.objects.get(model_name=model_info_update)
+                map_list = y_dict_map.train_labels.split(",")
+                label_list = y_dict_map.real_labels.split(",")
+                for r_label, t_label in zip(label_list, map_list):
+                    y_dict.update({r_label: t_label})
                 # 生成训练数据信息列表images_info
                 images_info = []
                 for label in labels_list:
@@ -291,10 +214,10 @@ class ImageClassifierAPI:
                         "model_belong": ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.
                                                                         get('modelName')).en_name,
                         "label_belong": label,
-                        "base_path": TRAINDATA_ROOT,
+                        "base_path": TRAIN_DATA_ROOT,
                         "images_name": []
                     }
-                    images_path = os.path.join(TRAINDATA_ROOT, image_info["model_belong"], image_info["label_belong"])
+                    images_path = os.path.join(TRAIN_DATA_ROOT, image_info["model_belong"], image_info["label_belong"])
 
                     image_info["images_name"] = os.listdir(images_path)
                     logic_delete_list = []
@@ -334,8 +257,6 @@ class ImageClassifierAPI:
             print("POST")
             # 提交测试图片以及测试指令
             try:
-                y_dict = {}
-                label_id = 0
                 user_belong = Users.objects.get(username=request.data.get('account'))
                 model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                                     cn_name=request.data.get('modelName'))
@@ -344,10 +265,13 @@ class ImageClassifierAPI:
                 elif model_info_update.train_status == 1:
                     return Response("Model is Training!")
                 else:
-                    label_list = model_info_update.labels.split(",")
-                    for label in label_list:
-                        y_dict.update({label: label_id})
-                        label_id += 1
+                    # 生成标签对应表，便于训练和测试的统一
+                    y_dict = {}
+                    y_dict_map = LabelMap.objects.get(model_name=model_info_update)
+                    map_list = y_dict_map.train_labels.split(",")
+                    label_list = y_dict_map.real_labels.split(",")
+                    for r_label, t_label in label_list, map_list:
+                        y_dict.update({r_label: t_label})
                     test_result = ModelTesting.model_testing(request.FILES.get('img'), model_info_update.en_name, y_dict)
                     return Response(test_result)
             except Exception as e:

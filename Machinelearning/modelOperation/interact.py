@@ -191,7 +191,7 @@ def teach_get_models(username, class_no):
         data_create = utc2local(item.data_create)
         data_update = utc2local(item.data_update)
         model["cn_name"] = item.cn_name
-        model["data_type"] = "图片"
+        model["data_type"] = "图像"
         model["algorithm"] = item.algorithm
         model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
         model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
@@ -236,7 +236,7 @@ def teach_get_models(username, class_no):
             data_update = utc2local(item2.data_update)
             model["user_name"] = item.student_name
             model["cn_name"] = item2.cn_name
-            model["data_type"] = "图片"
+            model["data_type"] = "图像"
             model["algorithm"] = item2.algorithm
             model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
             model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
@@ -281,7 +281,7 @@ def stu_get_models(username, class_no):
         data_create = utc2local(item.data_create)
         data_update = utc2local(item.data_update)
         model["cn_name"] = item.cn_name
-        model["data_type"] = "图片"
+        model["data_type"] = "图像"
         model["algorithm"] = item.algorithm
         model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
         model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
@@ -329,7 +329,7 @@ def stu_get_models(username, class_no):
         data_update = utc2local(item.data_update)
         model["teach_name"] = db_teacher.teacher_name
         model["cn_name"] = item.cn_name
-        model["data_type"] = "图片"
+        model["data_type"] = "图像"
         model["algorithm"] = item.algorithm
         model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
         model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
