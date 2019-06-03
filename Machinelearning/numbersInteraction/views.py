@@ -208,7 +208,7 @@ class API:
                 data = request.data
 
                 try:
-                    response = NumbersModelBasicInfo.objects.get(user_belong=data["username"], cn_name=data["model_name"])
+                    response = NumbersModelBasicInfo.objects.get(user_belong=data["username"], cn_name=data["modelName"])
                     algorithm = response.algorithm
 
                 except Exception as e:
@@ -216,8 +216,8 @@ class API:
 
                 test_data = dict()
                 test_data["username"] = data["username"]
-                test_data["model_name"] = data["model_name"]
-                test_data["test_data"] = data["test_data"]
+                test_data["modelName"] = data["modelName"]
+                test_data["testData"] = data["testData"]
                 if algorithm == "KNN":
                     prediction, time = knn_test_data(test_data)
                     if prediction == "null":
