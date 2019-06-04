@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^rnnTrain/$', numbers_interaction_views.API.RnnAPI.train_data),
     url(r'^rnnTest/$', numbers_interaction_views.API.RnnAPI.test_data),
     url(r'^editModel/$', model_operation_views.API.numbers_edit_model),
+    url(r'^testModelGetValue/$', model_operation_views.API.test_model_get_value),
     url(r'^testModel/$', numbers_interaction_views.API.TestOnlyAPI.test_model),
     url(r'^optimalTrain/$', adaptive_views.API.numbers_train),
 ]

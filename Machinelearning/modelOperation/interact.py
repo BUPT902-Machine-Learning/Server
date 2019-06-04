@@ -153,6 +153,28 @@ def numbers_edit_model(username, model_name):
     return train_data, value_data, params, algorithm, response.public_status
 
 
+def test_model_get_value(username, model_name):
+    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=model_name)
+    en_name = response.en_name
+
+    value_data = []
+    response_value_data = ValueSetData.objects.filter(model_name=en_name)
+    for item in response_value_data:
+        data = dict()
+        data["value"] = item.value
+        if item.type == '1':
+            data["type"] = '1'
+            data["multiSelect"] = []
+        else:
+            data["type"] = '0'
+            multi_select = item.multiSelect.split(';')
+            data["multiSelect"] = multi_select
+
+        value_data.append(data)
+
+    return value_data
+
+
 def image_edit_model(username, model_name):
     return "", "", "", ""
 

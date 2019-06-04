@@ -4,7 +4,8 @@ from rest_framework.decorators import api_view
 from imageInteraction.models import ImageModelBasicInfo
 from numbersInteraction.models import NumbersModelBasicInfo
 from textInteraction.models import TextModelBasicInfo
-from .interact import stu_get_models, delete_models, text_edit_model, numbers_edit_model, image_edit_model, teach_get_models
+from .interact import stu_get_models, delete_models, text_edit_model, numbers_edit_model, image_edit_model, \
+    teach_get_models, test_model_get_value
 
 
 class API:
@@ -94,6 +95,21 @@ class API:
                 "params": params,
                 "algorithm": algorithm,
                 "isPublic": is_public
+            })
+
+    @api_view(['GET', 'POST'])
+    def test_model_get_value(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            value_data = test_model_get_value(data["username"], data["modelName"])
+            return Response({
+                "valueData": value_data,
             })
 
     @api_view(['GET', 'POST'])
