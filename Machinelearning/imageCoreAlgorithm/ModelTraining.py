@@ -32,4 +32,4 @@ def model_training(augment_images_info, model_id, model_type, X_train, y_train, 
         file_name = model_id + "_svm.m"
         file_path = os.path.join(file_path, file_name)
         joblib.dump(model, file_path)
-        print("finished")
+        print("model training is finished")
