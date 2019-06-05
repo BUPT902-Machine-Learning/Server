@@ -237,7 +237,6 @@ def teach_get_models(username, class_no):
             stu_model.append(model)
 
         db_models = NumbersModelBasicInfo.objects.filter(user_belong=item.student_name, delete_status=0, public_status=1)
-        stu_model = []
         for item2 in db_models:
             model = {}
             data_create = utc2local(item2.data_create)
@@ -251,7 +250,6 @@ def teach_get_models(username, class_no):
             stu_model.append(model)
 
         db_models = ImageModelBasicInfo.objects.filter(user_belong=item.student_name, delete_status=0, public_status=1)
-        stu_model = []
         for item2 in db_models:
             model = {}
             data_create = utc2local(item2.data_create)
