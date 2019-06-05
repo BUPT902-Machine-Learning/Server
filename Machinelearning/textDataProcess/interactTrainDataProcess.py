@@ -385,8 +385,8 @@ def rnn_train_data(raw_data):
         response = TextModelBasicInfo.objects.get(en_name=en_name)
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
-    vocab_dir = 'data/modelVocabs/' + username
-    vocab_dir_txt = vocab_dir + '/textModels/' + en_name + 'Vocab.txt'
+    vocab_dir = 'data/modelVocabs/' + username + '/textModels/'
+    vocab_dir_txt = vocab_dir + en_name + 'Vocab.txt'
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)

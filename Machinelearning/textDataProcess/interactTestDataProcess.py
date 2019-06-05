@@ -32,8 +32,8 @@ def cnn_test_data(raw_data):
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
-    vocab_dir = 'data/modelVocabs/' + username
-    vocab_dir_txt = vocab_dir + '/textModels/' + en_name + 'Vocab.txt'
+    vocab_dir = 'data/modelVocabs/' + username + '/textModels/'
+    vocab_dir_txt = vocab_dir + en_name + 'Vocab.txt'
 
     if test_data:
         content = participle_test_data(test_data)
@@ -62,8 +62,8 @@ def rnn_test_data(raw_data):
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
-    vocab_dir = 'data/modelVocabs/' + username
-    vocab_dir_txt = vocab_dir + '/textModels/' + en_name + 'Vocab.txt'
+    vocab_dir = 'data/modelVocabs/' + username + '/textModels/'
+    vocab_dir_txt = vocab_dir + en_name + 'Vocab.txt'
 
     if test_data:
         content = participle_test_data(test_data)

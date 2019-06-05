@@ -149,6 +149,7 @@ def test(config, test_data, save_dir, vocab_dir_txt):
     print(config.embedding_dim)
     words, word_to_id = read_vocab(vocab_dir_txt)
     config.vocab_size = len(words)
+    tf.reset_default_graph()
     model = TextCNN(config)
     print("Loading test data...")
     start_time = time.time()

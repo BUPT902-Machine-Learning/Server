@@ -72,30 +72,34 @@ def text_adaptive(data):
         seq_length = max_seq_length(contents)
 
     params = dict()
-    if data_count <= 10:
+    if data_count <= 20:
         algorithm = "KNN"
         params["k"] = int(data_count / 5) + 1
         data["params"] = params
-    elif seq_length <= 600:
+    elif seq_length <= 100:
         algorithm = "CNN"
+        batch_size = int(data_count/50) + 1
+        num_epochs = data_count/batch_size
         params["embedding_dim"] = '-1'
         params["num_filters"] = '-1'
         params["kernel_size"] = '-1'
         params["fully_connected_dim"] = '-1'
         params["dropout_keep_prob"] = '-1'
-        params["batch_size"] = '-1'
-        params["num_epochs"] = '-1'
+        params["batch_size"] = batch_size
+        params["num_epochs"] = num_epochs
         data["params"] = params
 
     else:
         algorithm = "RNN"
+        batch_size = int(data_count / 50) + 1
+        num_epochs = data_count / batch_size
         params["embedding_dim"] = '-1'
         params["num_layers"] = '-1'
         params["rnn_type"] = '0'
         params["hidden_dim"] = '-1'
         params["dropout_keep_prob"] = '-1'
-        params["batch_size"] = '-1'
-        params["num_epochs"] = '-1'
+        params["batch_size"] = batch_size
+        params["num_epochs"] = num_epochs
         data["params"] = params
 
     return algorithm, data
