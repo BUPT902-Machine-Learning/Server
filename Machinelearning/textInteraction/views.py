@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 
-from cooperation.models import CooperationModels
+from cooperation.models import TextCooperationModels
 from textDataProcess.interactTrainDataProcess import knn_train_data, cnn_train_data, rnn_train_data
 from textDataProcess.interactTestDataProcess import knn_test_data, cnn_test_data, rnn_test_data
 from rest_framework.decorators import api_view
@@ -186,7 +186,7 @@ class API:
                     })
 
                 elif algorithm == "CNN":
-                    prediction, time = knn_test_data(test_data)
+                    prediction, time = cnn_test_data(test_data)
                     if prediction == "null":
                         return Response("预测结果错误，请重试！")
                     return Response({
@@ -195,7 +195,7 @@ class API:
                     })
 
                 elif algorithm == "RNN":
-                    prediction, time = knn_test_data(test_data)
+                    prediction, time = rnn_test_data(test_data)
                     if prediction == "null":
                         return Response("预测结果错误，请重试！")
                     return Response({

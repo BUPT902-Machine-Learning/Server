@@ -12,7 +12,7 @@ import textCoreAlgorithm.algorithm_RNN.run_rnn as run_rnn
 # import textCoreAlgorithm.algorithm_RNN.adaptive_run_rnn as adaptive_run_rnn
 # from textCoreAlgorithm.algorithm_CNN.cnn_model import TCNNConfig
 # from textCoreAlgorithm.algorithm_RNN.rnn_model import TRNNConfig
-from cooperation.models import CooperationModels
+from cooperation.models import TextCooperationModels
 from textDataProcess.paramsSet import cnn_set, rnn_set, test_cnn_set, test_rnn_set
 from textInteraction.models import Users, TextModelBasicInfo, TextLabelMap, TextTrainData, TextProcessData, TextCNNParams, TextRNNParams, TextKNNParams
 from textDataProcess.dataload import build_vocab
@@ -233,8 +233,8 @@ def cnn_train_data(raw_data):
         response = TextModelBasicInfo.objects.get(en_name=en_name)
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
-    vocab_dir = 'data/modelVocabs/' + username
-    vocab_dir_txt = vocab_dir + '/textModels/' + en_name + 'Vocab.txt'
+    vocab_dir = 'data/modelVocabs/' + username + '/textModels/'
+    vocab_dir_txt = vocab_dir + en_name + 'Vocab.txt'
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)

@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from classInfo.models import Teacher
-from cooperation.models import CooperationData
+from cooperation.models import TextCooperationData
 
 from textDataProcess.dataload import is_py3
 from textInteraction.models import TextModelBasicInfo
@@ -55,7 +55,7 @@ def encapsulation_data(labels, label_content, contents):
 
 class API:
     @api_view(['GET', 'POST'])
-    def create_model(request, format=None):
+    def create_text_model(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -145,7 +145,7 @@ class API:
                 data_create = utc2local(item.data_create)
                 data_update = utc2local(item.data_update)
                 model["cn_name"] = item.cn_name
-                model["teacher"] = user.teacher_name
+                model["teach_name"] = user.teacher_name
                 model["algorithm"] = item.algorithm
                 model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
                 model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
@@ -184,7 +184,7 @@ class API:
             return Response(create_models)
 
     @api_view(['GET', 'POST'])
-    def get_model_data(request, format=None):
+    def get_text_model_data(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -212,7 +212,7 @@ class API:
             return Response(model_datas)
 
     @api_view(['GET', 'POST'])
-    def push_data(request, format=None):
+    def push_text_data(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -233,7 +233,7 @@ class API:
             separator = ';'
             db_label_content = separator.join(label_content)
             db_contents = separator.join(train_contents)
-            db_operate = CooperationData(
+            db_operate = TextCooperationData(
                 en_name=en_name,
                 student_name=data["student_name"],
                 label_content=db_label_content,
@@ -244,7 +244,7 @@ class API:
             return Response()
 
     @api_view(['GET', 'POST'])
-    def train_model(request, format=None):
+    def train_text_model(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -263,7 +263,7 @@ class API:
 
             str_label_content = en_name.label_content
             str_contents = en_name.contents
-            student_push_data = CooperationData.objects.filter(en_name=en_name)
+            student_push_data = TextCooperationData.objects.filter(en_name=en_name)
 
             if str_label_content != "":
                 for item in student_push_data:

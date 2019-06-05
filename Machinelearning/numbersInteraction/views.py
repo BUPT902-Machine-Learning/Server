@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 
-from cooperation.models import CooperationModels
+from cooperation.models import TextCooperationModels
 from numbersDataProcess.interactTrainDataProcess import knn_train_data, cnn_train_data, rnn_train_data
 from numbersDataProcess.interactTestDataProcess import knn_test_data
 from rest_framework.decorators import api_view
