@@ -301,6 +301,7 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
             # 提交测试图片以及测试指令
             try:
                 user_belong = Users.objects.get(username=request.data.get('account'))
