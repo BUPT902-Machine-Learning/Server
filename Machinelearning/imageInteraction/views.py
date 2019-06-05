@@ -15,25 +15,25 @@ MODEL_ROOT = os.path.join(BASE_DIR, "image_model").replace('\\', '/')
 
 
 class ImageClassifierAPI:
-    @api_view(['GET', 'POST'])
-    def teach_get_co_model(request, format=None):
-        if request.method == 'GET':
-            print("GET")
-            return Response()
-        elif request.method == 'POST':
-            print("POST")
-            print(request.data)
-            return Response("todo")
-
-    @api_view(['GET', 'POST'])
-    def stu_get_co_model(request, format=None):
-        if request.method == 'GET':
-            print("GET")
-            return Response()
-        elif request.method == 'POST':
-            print("POST")
-            print(request.data)
-            return Response("todo")
+    # @api_view(['GET', 'POST'])
+    # def teach_get_co_model(request, format=None):
+    #     if request.method == 'GET':
+    #         print("GET")
+    #         return Response()
+    #     elif request.method == 'POST':
+    #         print("POST")
+    #         print(request.data)
+    #         return Response("todo")
+    #
+    # @api_view(['GET', 'POST'])
+    # def stu_get_co_model(request, format=None):
+    #     if request.method == 'GET':
+    #         print("GET")
+    #         return Response()
+    #     elif request.method == 'POST':
+    #         print("POST")
+    #         print(request.data)
+    #         return Response("todo")
 
     @api_view(['GET', 'POST'])
     def save_data(request, format=None):
@@ -43,18 +43,20 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
+            data = request.data
             try:
                 account = Users.objects.get(username=request.data.get('account'))
-                temp = ImageModelBasicInfo.objects.get(user_belong=account, cn_name=request.data.get('modelName'))
+                temp = ImageModelBasicInfo.objects.get(user_belong=account, cn_name=data['model_name'])
                 img = TrainData(user_belong=account,
                                 model_name=temp,
-                                label=request.data.get('label'),
-                                delete_status=request.data.get('delete'),
-                                content=request.FILES.get('img'),
-                                imgName=request.data.get('imgName'))
+                                label=data['label'],
+                                delete_status=data['delete'],
+                                content=data['image'],
+                                image_name=data['image_name'])
                 img_check = TrainData.objects.get(model_name=temp,
-                                                  label=request.data.get('label'),
-                                                  imgName=request.data.get('imgName'))
+                                                  label=data['label'],
+                                                  image_name=data['image_name'])
             except TrainData.DoesNotExist:
                 img.save()
                 return Response("Upload Images Success!")
@@ -73,17 +75,54 @@ class ImageClassifierAPI:
             return Response()
 
         elif request.method == 'POST':
+            print(request.data)
             print("POST")
             try:
                 modelName = ImageModelBasicInfo.objects.get(cn_name=request.data.get('modelName'))
                 img = TrainData.objects.get(model_name=modelName,
                                             label=request.data.get('label'),
-                                            imgName=request.data.get('imgName'))
+                                            image_name=request.data.get('imgName'))
                 img.delete_status = 1
                 img.save()
             except Exception as e:
                 return Response("failed")
             return Response("logic delete Success")
+
+    @api_view(['GET', 'POST'])
+    def save_label(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            try:
+                # save in database
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                             cn_name=data['modelName'])
+                if model_name.labels is not None:
+                    label_map = LabelMap.objects.get(model_name=model_name)
+                    model_name.labels += ","
+                    model_name.labels += data['label']
+                    label_map.real_labels = model_name.labels
+                    label_map.train_labels += ","
+                    label_list = model_name.labels.split(",")
+                    label_map.train_labels += str(len(label_list) - 1)
+                else:
+                    label_map = LabelMap.objects.create(model_name=model_name)
+                    model_name.labels = data['label']
+                    label_map.real_labels = data['label']
+                    label_map.train_labels = "0"
+
+                model_name.save()
+                label_map.save()
+                return Response("Add Label Success")
+            except Exception as e:
+                return Response("Add Label Failed")
+            return Response("Unknown Error")
 
     @api_view(['GET', 'POST'])
     def delete_label(request, format=None):
@@ -143,18 +182,18 @@ class ImageClassifierAPI:
             print("POST")
             try:
                 user_belong = Users.objects.get(username=request.data.get('userName'))
-                imgModel = ImageModelBasicInfo(user_belong=user_belong,
+                image_model = ImageModelBasicInfo(user_belong=user_belong,
                                                cn_name=request.data.get('modelName'),
                                                delete_status=0,
                                                public_status=1,
                                                train_status=0,
                                                model_type=1)
                 count = ImageModelBasicInfo.objects.all().count()
-                imgModel.en_name = "model" + str(count)
-                modelNameCheck = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                 en_name=request.data.get('modelName'))
+                image_model.en_name = "model" + str(count)
+                model_name_check = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                                   en_name=request.data.get('modelName'))
             except ImageModelBasicInfo.DoesNotExist:
-                imgModel.save()
+                image_model.save()
                 return Response("Create Image Model Success!")
             else:
                 return Response("Model Name Check Failed!")
@@ -195,33 +234,18 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
             # 提交标签信息以及训练指令
             try:
                 # 将标签信息同步至模型基本信息表中
                 user_belong = Users.objects.get(username=request.data.get('userName'))
                 model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                                     cn_name=request.data.get('modelName'))
-                label_map = LabelMap.objects.create(model_name=model_info_update)
                 labels_list = request.data.get('label')
-                labels_to_save = ""
-                maps_to_save = ""
-                map_start = 0
-                for label in labels_list:
-                    maps_to_save += str(map_start)
-                    maps_to_save += ","
-                    map_start += 1
-                    labels_to_save += label
-                    labels_to_save += ","
-                labels_to_save = labels_to_save[:-1]
-                model_info_update.labels = labels_to_save
                 model_info_update.train_status = 1
                 model_info_update.public_status = request.data.get('publicStatus')
                 model_info_update.save()
 
-                maps_to_save = maps_to_save[:-1]
-                label_map.real_labels = labels_to_save
-                label_map.train_labels = maps_to_save
-                label_map.save()
                 # 生成标签对应表，便于训练和测试的统一
                 y_dict = {}
                 y_dict_map = LabelMap.objects.get(model_name=model_info_update)
@@ -332,7 +356,7 @@ class ImageClassifierAPI:
                 images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
                                                   delete_status=0)
                 for item in images:
-                    image_name.append(item.imgName)
+                    image_name.append(item.image_name)
                 for item in images:
                     # str_url = parse.unquote(item.content.url)
                     contents.append("http://www.localhost.com:8082" + item.content.url)
