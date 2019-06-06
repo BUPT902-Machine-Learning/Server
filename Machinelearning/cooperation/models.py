@@ -1,5 +1,6 @@
 from django.db import models
 from classInfo.models import Teacher
+from numbersInteraction.models import NumbersModelBasicInfo
 from textInteraction.models import TextModelBasicInfo
 
 from users.models import Users
@@ -74,7 +75,7 @@ class TextCooperationData(models.Model):
 
 
 class NumbersCooperationData(models.Model):
-    en_name = models.ForeignKey(TextModelBasicInfo)
+    en_name = models.ForeignKey(NumbersModelBasicInfo)
     student_name = models.CharField(max_length=20)
     label_content = models.TextField(max_length=65535)
     contents = models.TextField(max_length=65535)
