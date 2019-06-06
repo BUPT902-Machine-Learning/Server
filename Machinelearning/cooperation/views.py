@@ -2,12 +2,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from classInfo.models import Teacher
-from cooperation.models import TextCooperationData
+from cooperation.models import TextCooperationData, NumbersCooperationData
 from cooperation.models import CooperationImageModels, CooperationImageTrainData, CooperationImageLabelMap
+from imageInteraction.models import ImageModelBasicInfo
+from numbersInteraction.models import NumbersModelBasicInfo, ValueSetData
 
 from textDataProcess.dataload import is_py3
 from textInteraction.models import TextModelBasicInfo
-from modelOperation.interact import utc2local
+from modelOperation.interact import utc2local, test_model_get_value
 from users.models import Users
 
 from Machinelearning import settings
@@ -21,8 +23,7 @@ AUG_ROOT = os.path.join(BASE_DIR, "aug_images").replace('\\', '/')
 MODEL_ROOT = os.path.join(BASE_DIR, "image_model").replace('\\', '/')
 
 
-
-def get_train_data(train_data):
+def get_text_train_data(train_data):
     labels, contents, label_content = [], [], []
 
     for item in train_data:
@@ -31,6 +32,28 @@ def get_train_data(train_data):
             labels.append(label)
             for content in item["contents"]:
                 contents.append(content)
+                label_content.append(label)
+
+        except:
+            pass
+
+    return labels, contents, label_content
+
+
+def get_numbers_train_data(train_data):
+    labels, contents, label_content = [], [], []
+
+    for item in train_data:
+        try:
+            label = item["label"]
+            labels.append(label)
+            for content in item["contents"]:
+                str_content = []
+                for item2 in content:
+                    str_content.append(str(item2))
+                separator = ','
+                train_content = separator.join(str_content)
+                contents.append(train_content)
                 label_content.append(label)
 
         except:
@@ -90,7 +113,7 @@ class API:
                 })
 
             train_data = raw_data["trainData"]
-            train_labels, train_contents, label_content = get_train_data(train_data)
+            train_labels, train_contents, label_content = get_text_train_data(train_data)
             separator = ';'
             db_labels = separator.join(train_labels)
             db_label_content = separator.join(label_content)
@@ -113,7 +136,71 @@ class API:
             })
 
     @api_view(['GET', 'POST'])
-    def delete_model(request, format=None):
+    def create_numbers_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            raw_data = request.data
+            count = NumbersModelBasicInfo.objects.all().count()
+            en_name = "model" + str(count)
+            cn_name = raw_data["modelName"]
+            username = raw_data["username"]
+
+            try:
+                user = Users.objects.get(username=username)
+
+            except Exception as e:
+                return Response({
+                    "教师不存在"
+                })
+
+            train_data = raw_data["trainData"]
+            value_data = raw_data["valueData"]
+            train_labels, train_contents, label_content = get_numbers_train_data(train_data)
+            separator = ';'
+            db_labels = separator.join(train_labels)
+            db_label_content = separator.join(label_content)
+            db_contents = separator.join(train_contents)
+            print(db_labels)
+            print(db_contents)
+            db_operate = NumbersModelBasicInfo(
+                cn_name=cn_name,
+                en_name=en_name,
+                user_belong=user,
+                model_type=0,
+                labels=db_labels,
+                label_content=db_label_content,
+                contents=db_contents
+            )
+            db_operate.save()
+
+            response = NumbersModelBasicInfo.objects.get(en_name=en_name)
+
+            for item in value_data:
+                if item["multiSelect"]:
+                    separator = ';'
+                    multi_select = separator.join(item["multiSelect"])
+                else:
+                    multi_select = ""
+
+                db_operate = ValueSetData(
+                    model_name=response,
+                    value=item["value"],
+                    type=item["type"],
+                    multiSelect=multi_select
+                )
+                db_operate.save()
+
+            return Response({
+                "添加成功"
+            })
+
+    @api_view(['GET', 'POST'])
+    def delete_text_model(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -125,6 +212,26 @@ class API:
 
             try:
                 TextModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["modelName"])\
+                    .update(delete_status=1)
+
+            except Exception as e:
+                return Response({"delete_error"})
+
+            return Response({"delete_confirm"})
+
+    @api_view(['GET', 'POST'])
+    def delete_numbers_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+
+            try:
+                NumbersModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["modelName"]) \
                     .update(delete_status=1)
 
             except Exception as e:
@@ -158,6 +265,35 @@ class API:
                 data_update = utc2local(item.data_update)
                 model["cn_name"] = item.cn_name
                 model["teach_name"] = user.teacher_name
+                model["data_type"] = "文本"
+                model["algorithm"] = item.algorithm
+                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+                create_models.append(model)
+
+            db_models = NumbersModelBasicInfo.objects.filter(user_belong=user.teacher_name, delete_status=0,
+                                                          model_type=0)
+            for item in db_models:
+                model = {}
+                data_create = utc2local(item.data_create)
+                data_update = utc2local(item.data_update)
+                model["cn_name"] = item.cn_name
+                model["teach_name"] = user.teacher_name
+                model["data_type"] = "数字"
+                model["algorithm"] = item.algorithm
+                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+                create_models.append(model)
+
+            db_models = ImageModelBasicInfo.objects.filter(user_belong=user.teacher_name, delete_status=0,
+                                                          model_type=0)
+            for item in db_models:
+                model = {}
+                data_create = utc2local(item.data_create)
+                data_update = utc2local(item.data_update)
+                model["cn_name"] = item.cn_name
+                model["teach_name"] = user.teacher_name
+                model["data_type"] = "图片"
                 model["algorithm"] = item.algorithm
                 model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
                 model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
@@ -189,6 +325,31 @@ class API:
                 data_create = utc2local(item.data_create)
                 data_update = utc2local(item.data_update)
                 model["cn_name"] = item.cn_name
+                model["data_type"] = "文本"
+                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+                create_models.append(model)
+
+            db_models = NumbersModelBasicInfo.objects.filter(user_belong=user, delete_status=0,
+                                                          model_type=0)
+            for item in db_models:
+                model = {}
+                data_create = utc2local(item.data_create)
+                data_update = utc2local(item.data_update)
+                model["cn_name"] = item.cn_name
+                model["data_type"] = "数字"
+                model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
+                model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
+                create_models.append(model)
+
+            db_models = ImageModelBasicInfo.objects.filter(user_belong=user, delete_status=0,
+                                                          model_type=0)
+            for item in db_models:
+                model = {}
+                data_create = utc2local(item.data_create)
+                data_update = utc2local(item.data_update)
+                model["cn_name"] = item.cn_name
+                model["data_type"] = "图片"
                 model["data_create"] = data_create.strftime("%Y-%m-%d %H:%M:%S")
                 model["data_update"] = data_update.strftime("%Y-%m-%d %H:%M:%S")
                 create_models.append(model)
@@ -224,6 +385,53 @@ class API:
             return Response(model_datas)
 
     @api_view(['GET', 'POST'])
+    def numbers_model_get_value(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            value_data = test_model_get_value(data["username"], data["modelName"])
+            return Response({
+                "valueData": value_data,
+            })
+
+    @api_view(['GET', 'POST'])
+    def get_numbers_model_data(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+
+            try:
+                user = Users.objects.get(username=data["username"])
+                db_model_data = NumbersModelBasicInfo.objects.get(user_belong=user, cn_name=data["modelName"],
+                                                               delete_status=0, model_type=0)
+            except Exception as e:
+                return Response({"没有找到此模型"})
+
+            db_labels = db_model_data.labels
+            db_label_content = db_model_data.label_content
+            db_contents = db_model_data.contents
+            labels = db_labels.split(";")
+            label_content = db_label_content.split(";")
+            merge_contents = db_contents.split(";")
+            contents = []
+            for item in merge_contents:
+                content = item.split(',')
+                contents.append(content)
+            model_datas = encapsulation_data(labels, label_content, contents)
+
+            return Response(model_datas)
+
+    @api_view(['GET', 'POST'])
     def push_text_data(request, format=None):
         if request.method == 'GET':
             print("GET")
@@ -241,11 +449,43 @@ class API:
             except Exception as e:
                 return Response({"模型不存在"})
 
-            train_labels, train_contents, label_content = get_train_data(data["train_data"])
+            train_labels, train_contents, label_content = get_text_train_data(data["train_data"])
             separator = ';'
             db_label_content = separator.join(label_content)
             db_contents = separator.join(train_contents)
             db_operate = TextCooperationData(
+                en_name=en_name,
+                student_name=data["student_name"],
+                label_content=db_label_content,
+                contents=db_contents,
+            )
+            db_operate.save()
+
+            return Response()
+
+    @api_view(['GET', 'POST'])
+    def push_numbers_data(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+
+            try:
+                user = Users.objects.get(username=data["teacher_name"])
+                en_name = NumbersModelBasicInfo.objects.get(user_belong=user, cn_name=data["model_name"], delete_status=0)
+
+            except Exception as e:
+                return Response({"模型不存在"})
+
+            train_labels, train_contents, label_content = get_numbers_train_data(data["train_data"])
+            separator = ';'
+            db_label_content = separator.join(label_content)
+            db_contents = separator.join(train_contents)
+            db_operate = NumbersCooperationData(
                 en_name=en_name,
                 student_name=data["student_name"],
                 label_content=db_label_content,
@@ -302,7 +542,57 @@ class API:
             })
 
     @api_view(['GET', 'POST'])
-    def if_train(request, format=None):
+    def train_numbers_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+
+            try:
+                en_name = NumbersModelBasicInfo.objects.get(user_belong=data["teacher_name"], cn_name=data["model_name"],
+                                                         delete_status=0)
+
+            except Exception as e:
+                return Response({"模型不存在"})
+
+            str_label_content = en_name.label_content
+            str_contents = en_name.contents
+            student_push_data = NumbersCooperationData.objects.filter(en_name=en_name)
+
+            if str_label_content != "":
+                for item in student_push_data:
+                    str_label_content = str_label_content + ";" + item.label_content
+                    str_contents = str_contents + ";" + item.contents
+            else:
+                student_data = list(student_push_data)
+                if student_data:
+                    student = student_data.pop(0)
+                    str_label_content = student.label_content
+                    str_contents = student.contents
+                    for item in student_push_data:
+                        str_label_content = str_label_content + ";" + item.label_content
+                        str_contents = str_contents + ";" + item.contents
+
+            labels = en_name.labels.split(";")
+            label_content = str_label_content.split(";")
+            merge_contents = str_contents.split(";")
+            contents = []
+            for item in merge_contents:
+                content = item.split(',')
+                contents.append(content)
+            model_datas = encapsulation_data(labels, label_content, contents)
+
+            return Response({
+                "algorithm": en_name.algorithm,
+                "model_datas": model_datas
+            })
+
+    @api_view(['GET', 'POST'])
+    def text_if_train(request, format=None):
         if request.method == 'GET':
             print("GET")
             return Response()
@@ -313,8 +603,24 @@ class API:
             data = request.data
 
             response = TextModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["modelName"])
-            print("algop")
-            print(response[0].algorithm)
+
+            if response[0].algorithm:
+                return Response({"模型已训练"})
+
+            return Response({"模型未训练"})
+
+    @api_view(['GET', 'POST'])
+    def numbers_if_train(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+
+            response = NumbersModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["modelName"])
 
             if response[0].algorithm:
                 return Response({"模型已训练"})
