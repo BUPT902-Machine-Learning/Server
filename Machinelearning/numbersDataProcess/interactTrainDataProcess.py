@@ -152,9 +152,6 @@ def knn_train_data(raw_data):
             db_operation.save()
 
         contents, labels = get_train_data(train_data)
-        print("wancheng")
-        print(contents)
-        print(labels)
         db_labels = separator.join(labels)
         db_data = separator.join(contents)
         db_operation = NumbersTrainData(
