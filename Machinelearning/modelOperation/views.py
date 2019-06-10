@@ -37,7 +37,8 @@ class API:
                 response = TextModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
 
             elif train_data_type == "numbers":
-                response = NumbersModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
+                response = NumbersModelBasicInfo.objects.filter(user_belong=data["username"],
+                                                                cn_name=data["model_name"], delete_status=0)
             else:
                 response = ImageModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
 

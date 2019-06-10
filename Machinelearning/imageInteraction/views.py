@@ -272,7 +272,7 @@ class ImageClassifierAPI:
                                                               label=image_info["label_belong"],
                                                               delete_status=1)
                     for item in sql_delete_set:
-                        logic_delete_list.append(item.imgName)
+                        logic_delete_list.append(item.image_name)
                     image_info["images_name"] = list(set(image_info["images_name"]) - set(logic_delete_list))
                     images_info.append(image_info)
                 # print(images_info)
@@ -365,7 +365,9 @@ class ImageClassifierAPI:
                 label_data["image_name"] = image_name
                 label_data["contents"] = contents
                 table_data.append(label_data)
-            return Response({"tableData": table_data})
+                print(model_info.public_status)
+            return Response({"tableData": table_data,
+                             "publicStatus": model_info.public_status})
 
     @api_view(['GET', 'POST'])
     def re_train_img_model(request, format=None):
@@ -441,7 +443,7 @@ class ImageClassifierAPI:
                                                                   label=image_info["label_belong"],
                                                                   delete_status=1)
                         for item in sql_delete_set:
-                            logic_delete_list.append(item.imgName)
+                            logic_delete_list.append(item.image_name)
                         image_info["images_name"] = list(set(image_info["images_name"]) - set(logic_delete_list))
                         images_info.append(image_info)
                     # print(images_info)
