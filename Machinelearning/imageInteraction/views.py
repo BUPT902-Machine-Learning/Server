@@ -46,27 +46,24 @@ class ImageClassifierAPI:
             print(request.data)
             data = request.data
             try:
-                account = Users.objects.get(username=request.data.get('account'))
+                account = Users.objects.get(username=data['account'])
                 temp = ImageModelBasicInfo.objects.get(user_belong=account, cn_name=data['model_name'])
+                total_count = TrainData.objects.all().count()
                 img = TrainData(user_belong=account,
                                 model_name=temp,
+                                image_id=total_count,
                                 label=data['label'],
                                 delete_status=data['delete'],
                                 content=data['image'],
                                 image_name=data['image_name'])
-                img_check = TrainData.objects.get(model_name=temp,
-                                                  label=data['label'],
-                                                  image_name=data['image_name'])
-            except TrainData.DoesNotExist:
+
                 img.save()
-                return Response("Upload Images Success!")
-            if img_check.delete_status == 1:
-                img_check.content = img.content
-                img_check.delete_status = 0
-                img_check.save()
-                return Response("Restore Images Success!")
-            else:
-                return Response("Name Check Failed!")
+                return Response({
+                    "save_status": "success",
+                    "image_id": total_count
+                })
+            except Exception as e:
+                return Response({"save_status": "failed"})
 
     @api_view(['GET', 'POST'])
     def delete_data(request, format=None):
@@ -76,16 +73,14 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print(request.data)
+            data = request.data
             print("POST")
             try:
-                modelName = ImageModelBasicInfo.objects.get(cn_name=request.data.get('modelName'))
-                img = TrainData.objects.get(model_name=modelName,
-                                            label=request.data.get('label'),
-                                            image_name=request.data.get('imgName'))
+                img = TrainData.objects.get(image_id=data["image_id"])
                 img.delete_status = 1
                 img.save()
             except Exception as e:
-                return Response("failed")
+                return Response("logic delete failed")
             return Response("logic delete Success")
 
     @api_view(['GET', 'POST'])
@@ -103,14 +98,22 @@ class ImageClassifierAPI:
                 user_belong = Users.objects.get(username=data['userName'])
                 model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                              cn_name=data['modelName'])
+
                 if model_name.labels is not None:
-                    label_map = LabelMap.objects.get(model_name=model_name)
-                    model_name.labels += ","
-                    model_name.labels += data['label']
-                    label_map.real_labels = model_name.labels
-                    label_map.train_labels += ","
-                    label_list = model_name.labels.split(",")
-                    label_map.train_labels += str(len(label_list) - 1)
+                    print(model_name.labels, len(model_name.labels))
+                    if len(model_name.labels) == 0:
+                        label_map = LabelMap.objects.get(model_name=model_name)
+                        model_name.labels = data['label']
+                        label_map.real_labels = data['label']
+                        label_map.train_labels = "0"
+                    else:
+                        label_map = LabelMap.objects.get(model_name=model_name)
+                        model_name.labels += ","
+                        model_name.labels += data['label']
+                        label_map.real_labels = model_name.labels
+                        label_map.train_labels += ","
+                        label_list = model_name.labels.split(",")
+                        label_map.train_labels += str(len(label_list) - 1)
                 else:
                     label_map = LabelMap.objects.create(model_name=model_name)
                     model_name.labels = data['label']
@@ -132,16 +135,18 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
+            data = request.data
             try:
                 # delete in database
-                user_belong = Users.objects.get(username=request.data.get('userName'))
-                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'))
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=data['modelName'])
                 label_map = LabelMap.objects.get(model_name=model_name)
                 TrainData.objects.filter(user_belong=user_belong,
-                                         model_name=model_name, label=request.data.get('label')).delete()
+                                         model_name=model_name, label=data['label']).delete()
                 label_list = model_name.labels.split(",")
-                if label_list.count(request.data.get('label')) == 1:
-                    label_list.remove(request.data.get('label'))
+                if label_list.count(data['label']) == 1:
+                    label_list.remove(data['label'])
                 update_labels = ""
                 label_numbers = ""
                 numbers = 0
@@ -158,7 +163,7 @@ class ImageClassifierAPI:
                 label_map.save()
                 # delete the files
                 model_file_name = model_name.en_name
-                label_file_name = request.data.get('label')
+                label_file_name = data['label']
                 file_path = os.path.join(settings.MEDIA_ROOT, model_file_name, label_file_name).replace('\\', '/')
                 if os.path.isdir(file_path):
                     delete_list = os.listdir(file_path)
@@ -183,15 +188,14 @@ class ImageClassifierAPI:
             try:
                 user_belong = Users.objects.get(username=request.data.get('userName'))
                 image_model = ImageModelBasicInfo(user_belong=user_belong,
-                                               cn_name=request.data.get('modelName'),
-                                               delete_status=0,
-                                               public_status=1,
-                                               train_status=0,
-                                               model_type=1)
+                                                  cn_name=request.data.get('modelName'),
+                                                  delete_status=0,
+                                                  train_status=0,
+                                                  model_type=1)
                 count = ImageModelBasicInfo.objects.all().count()
                 image_model.en_name = "model" + str(count)
                 model_name_check = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                   en_name=request.data.get('modelName'))
+                                                                   cn_name=request.data.get('modelName'))
             except ImageModelBasicInfo.DoesNotExist:
                 image_model.save()
                 return Response("Create Image Model Success!")
@@ -235,61 +239,79 @@ class ImageClassifierAPI:
         elif request.method == 'POST':
             print("POST")
             print(request.data)
+            data = request.data
             # 提交标签信息以及训练指令
             try:
-                # 将标签信息同步至模型基本信息表中
-                user_belong = Users.objects.get(username=request.data.get('userName'))
-                model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                    cn_name=request.data.get('modelName'))
-                labels_list = request.data.get('label')
-                model_info_update.train_status = 1
-                model_info_update.public_status = request.data.get('publicStatus')
-                model_info_update.save()
-
-                # 生成标签对应表，便于训练和测试的统一
-                y_dict = {}
-                y_dict_map = LabelMap.objects.get(model_name=model_info_update)
-                map_list = y_dict_map.train_labels.split(",")
-                label_list = y_dict_map.real_labels.split(",")
-                for r_label, t_label in zip(label_list, map_list):
-                    y_dict.update({r_label: t_label})
-                # 生成训练数据信息列表images_info
-                images_info = []
-                for label in labels_list:
-                    image_info = {
-                        "model_belong": ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.
-                                                                        get('modelName')).en_name,
-                        "label_belong": label,
-                        "base_path": TRAIN_DATA_ROOT,
-                        "images_name": []
-                    }
-                    images_path = os.path.join(TRAIN_DATA_ROOT, image_info["model_belong"], image_info["label_belong"])
-
-                    image_info["images_name"] = os.listdir(images_path)
-                    logic_delete_list = []
-                    foreign_key = ImageModelBasicInfo.objects.get(en_name=image_info["model_belong"])
-                    sql_delete_set = TrainData.objects.filter(model_name=foreign_key,
-                                                              label=image_info["label_belong"],
-                                                              delete_status=1)
-                    for item in sql_delete_set:
-                        logic_delete_list.append(item.image_name)
-                    image_info["images_name"] = list(set(image_info["images_name"]) - set(logic_delete_list))
-                    images_info.append(image_info)
-                # print(images_info)
-
-                # 数据增强、特征提取和模型训练
-                if images_info.__len__() < 2:
-                    return Response("The number of labels must be more than 2!")
-                elif images_info.__len__() >= 2:
-                    augment_images_info = copy.deepcopy(images_info)
-                    DataAugmentation.data_augmentation(images_info, augment_images_info)
-                    pre_train_model_type = "VGG16"
-                    X_train, y_train, X_test, y_test = FeatureObtainer.feature_obtainer(augment_images_info, pre_train_model_type, y_dict)
-                    model_type = "SVM"
-                    ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"], model_type, X_train, y_train, X_test, y_test)
-                    model_info_update.train_status = 2
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                             cn_name=data['modelName'])
+                model_file_name = model_name.en_name
+                if data['isChange'] == 0:
+                    model_name.public_status = data['publicStatus']
+                    model_name.save()
+                    return Response("model data is same to old version")
+                else:
+                    # 删除预先保留的数据增强以及模型信息
+                    if model_name.train_status == 2:
+                        file_path_list = [os.path.join(AUG_ROOT, model_file_name).replace('\\', '/'),
+                                          os.path.join(MODEL_ROOT, model_file_name + "_svm.m").replace('\\', '/')]
+                        for filePath in file_path_list:
+                            FilesDelete.file_delete(filePath)
+                    # 将标签信息同步至模型基本信息表中
+                    user_belong = Users.objects.get(username=data['userName'])
+                    model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                                        cn_name=data['modelName'])
+                    labels_list = data['label']
+                    model_info_update.train_status = 1
+                    model_info_update.public_status = data['publicStatus']
                     model_info_update.save()
-                return Response("Model Training Success!")
+
+                    # 生成标签对应表，便于训练和测试的统一
+                    y_dict = {}
+                    y_dict_map = LabelMap.objects.get(model_name=model_info_update)
+                    map_list = y_dict_map.train_labels.split(",")
+                    label_list = y_dict_map.real_labels.split(",")
+                    for r_label, t_label in zip(label_list, map_list):
+                        y_dict.update({r_label: t_label})
+                    # 生成训练数据信息列表images_info
+                    images_info = []
+                    for label in labels_list:
+                        image_info = {
+                            "model_belong": ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                                            cn_name=data['modelName']).en_name,
+                            "label_belong": label,
+                            "base_path": TRAIN_DATA_ROOT,
+                            "images_name": []
+                        }
+                        images_path = os.path.join(TRAIN_DATA_ROOT, image_info["model_belong"], image_info["label_belong"])
+
+                        image_info["images_name"] = os.listdir(images_path)
+                        logic_delete_list = []
+                        foreign_key = ImageModelBasicInfo.objects.get(en_name=image_info["model_belong"])
+                        sql_delete_set = TrainData.objects.filter(model_name=foreign_key,
+                                                                  label=image_info["label_belong"],
+                                                                  delete_status=1)
+                        for item in sql_delete_set:
+                            logic_delete_list.append(item.image_name)
+                        image_info["images_name"] = list(set(image_info["images_name"]) - set(logic_delete_list))
+                        images_info.append(image_info)
+                    # print(images_info)
+
+                    # 数据增强、特征提取和模型训练
+                    if images_info.__len__() < 2:
+                        return Response("The number of labels must be more than 2!")
+                    elif images_info.__len__() >= 2:
+                        augment_images_info = copy.deepcopy(images_info)
+                        DataAugmentation.data_augmentation(images_info, augment_images_info)
+                        pre_train_model_type = "VGG16"
+                        X_train, y_train, X_test, y_test = FeatureObtainer.feature_obtainer(augment_images_info, pre_train_model_type, y_dict)
+                        model_type = "SVM"
+                        ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"], model_type, X_train, y_train, X_test, y_test)
+                        model_info_update.train_status = 2
+                        model_info_update.algorithm = "CNN-SVM"
+                        model_info_update.save()
+
+                    return Response("Model Training Success!")
             except Exception as e:
                 return Response("Model Training Error!")
 
@@ -349,21 +371,26 @@ class ImageClassifierAPI:
             user_belong = Users.objects.get(username=request.data.get('userName'))
             model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'))
             table_data = []
-            label_list = model_info.labels.split(",")
+            if model_info.labels is not None:
+                label_list = model_info.labels.split(",")
+            else:
+                label_list = []
             for label in label_list:
                 label_data = {}
                 image_name = []
                 contents = []
+                image_id = []
                 images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
                                                   delete_status=0)
                 for item in images:
                     image_name.append(item.image_name)
-                for item in images:
-                    # str_url = parse.unquote(item.content.url)
                     contents.append("http://www.localhost.com:8082" + item.content.url)
+                    image_id.append(item.image_id)
+
                 label_data["label"] = label
                 label_data["image_name"] = image_name
                 label_data["contents"] = contents
+                label_data["image_id"] = image_id
                 table_data.append(label_data)
                 print(model_info.public_status)
             return Response({"tableData": table_data,
@@ -379,14 +406,17 @@ class ImageClassifierAPI:
             print("POST")
             # 提交标签信息以及训练指令
             try:
-                if request.data.get('isChange') == 0:
-                    return Response("model info is same to old version")
+                print(request.data)
+                data = request.data
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                             cn_name=data['modelName'])
+                if data['isChange'] == 0:
+                    model_name.public_status = data['publicStatus']
+                    model_name.save()
+                    return Response("model data is same to old version")
                 else:
                     # 删除预先保留的数据增强以及模型信息
-                    print(request.data)
-                    user_belong = Users.objects.get(username=request.data.get('userName'))
-                    model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                 cn_name=request.data.get('modelName'))
                     model_file_name = model_name.en_name
                     file_path_list = [os.path.join(AUG_ROOT, model_file_name).replace('\\', '/'),
                                       os.path.join(MODEL_ROOT, model_file_name + "_svm.m").replace('\\', '/')]
@@ -461,6 +491,7 @@ class ImageClassifierAPI:
                         ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"], model_type,
                                                      X_train, y_train, X_test, y_test)
                         model_info_update.train_status = 2
+                        model_info_update.algorithm = "CNN-SVM"
                         model_info_update.save()
                     return Response("Model Re-Training Success!")
             except Exception as e:

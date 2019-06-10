@@ -117,6 +117,8 @@ def train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
                 loss_val, acc_val = evaluate(model, session, x_val, y_val)  # todo
 
                 if acc_val > best_acc_val:
+                    if acc_val > 0.95 or acc_val/loss_val > 16.0:
+                        break;
                     # 保存最好结果
                     best_acc_val = acc_val
                     last_improved = total_batch

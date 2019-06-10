@@ -76,10 +76,13 @@ def text_adaptive(data):
         algorithm = "KNN"
         params["k"] = int(data_count / 5) + 1
         data["params"] = params
-    elif seq_length <= 100:
+    elif data_count <= 300:
         algorithm = "CNN"
-        batch_size = int(data_count/50) + 1
-        num_epochs = data_count/batch_size
+        batch_size = int(data_count/25) + 1
+        num_epochs = int(data_count/batch_size)
+        print("www")
+        print(batch_size)
+        print(num_epochs)
         params["embedding_dim"] = '-1'
         params["num_filters"] = '-1'
         params["kernel_size"] = '-1'

@@ -47,14 +47,17 @@ class API:
             print(request.data)
             data = request.data
             print(data["trainData"])
-            algorithm, data = numbers_adaptive(data)
-            if algorithm == "KNN":
+            # algorithm, data = numbers_adaptive(data)
+            # if algorithm == "KNN":
+            params = {}
+            params["k"] = 3
+            data["params"] = params
+            k = data["params"]["k"]
+            acc, time = numbersTrainDataProcess.knn_train_data(data)
+            while acc < 0.85 and k > 1:
+                data["params"]["k"] -= 1
                 k = data["params"]["k"]
                 acc, time = numbersTrainDataProcess.knn_train_data(data)
-                while acc < 0.85 and k > 1:
-                    data["params"]["k"] -= 1
-                    k = data["params"]["k"]
-                    acc, time = numbersTrainDataProcess.knn_train_data(data)
             #
             # elif algorithm == "CNN":
             #     loss, acc, time = cnn_train_data(data)

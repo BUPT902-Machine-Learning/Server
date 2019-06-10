@@ -47,7 +47,6 @@ def data_augmentation(raw_images_info, augment_images_info):
     augment_factor = 12
     for item in augment_images_info:
         item["images_name"] = []
-
     augment_factor *= len(raw_images_info)
     for image_info in raw_images_info:
         single_label_augment(augment_factor, image_info, augment_images_info)
