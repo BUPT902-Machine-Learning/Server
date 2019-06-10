@@ -34,13 +34,12 @@ class API:
             data = request.data
             train_data_type = data["train_data_type"]
             if train_data_type == "text":
-                response = TextModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"])
+                response = TextModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
 
             elif train_data_type == "numbers":
-                response = NumbersModelBasicInfo.objects.filter(user_belong=data["username"],
-                                                                cn_name=data["model_name"])
+                response = NumbersModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
             else:
-                response = ImageModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"])
+                response = ImageModelBasicInfo.objects.filter(user_belong=data["username"], cn_name=data["model_name"], delete_status=0)
 
             if response:
                 return Response({"模型名已存在"})
