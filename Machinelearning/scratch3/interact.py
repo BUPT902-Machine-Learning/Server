@@ -17,7 +17,7 @@ def get_models(username):
 
 
 def get_labels(username, cn_name):
-    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
     en_name = response.en_name
     db_labels = TextLabelMap.objects.get(model_name=en_name)
     labels = db_labels.real_labels.split(';')
@@ -56,7 +56,7 @@ def test_data_process(raw_data):
             num_prediction, time = run_cnn.test(config, train_labels, content, en_name)
 
         elif algorithm == 'KNN':
-            response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+            response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
             en_name = response.en_name
             save_dir = 'checkpoints/' + username + '/textModels/' + en_name
             response = TextLabelMap.objects.get(model_name=en_name)

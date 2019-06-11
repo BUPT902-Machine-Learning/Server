@@ -166,7 +166,7 @@ class API:
                 data = request.data
 
                 try:
-                    response = TextModelBasicInfo.objects.get(user_belong=data["username"], cn_name=data["modelName"])
+                    response = TextModelBasicInfo.objects.get(user_belong=data["username"], cn_name=data["modelName"], delete_status=0)
                     algorithm = response.algorithm
 
                 except Exception as e:

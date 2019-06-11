@@ -10,7 +10,7 @@ def knn_test_data(raw_data):
     test_data = raw_data["testData"]
     cn_name = raw_data["modelName"]
     username = raw_data["username"]
-    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
@@ -28,7 +28,7 @@ def cnn_test_data(raw_data):
     test_data = raw_data["testData"]
     cn_name = raw_data["modelName"]
     username = raw_data["username"]
-    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name
@@ -58,7 +58,7 @@ def rnn_test_data(raw_data):
     test_data = raw_data["testData"]
     cn_name = raw_data["modelName"]
     username = raw_data["username"]
-    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/textModels/' + en_name

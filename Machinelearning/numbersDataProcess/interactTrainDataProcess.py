@@ -93,7 +93,7 @@ def knn_train_data(raw_data):
         k = 3
 
     try:
-        response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+        response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
         en_name = response.en_name
 
     except Exception as e:
@@ -224,7 +224,7 @@ def cnn_train_data(raw_data):
     params = raw_data["params"]
 
     try:
-        response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+        response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
         en_name = response.en_name
 
     except Exception as e:
@@ -376,7 +376,7 @@ def rnn_train_data(raw_data):
     params = raw_data["params"]
 
     try:
-        response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+        response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
         en_name = response.en_name
 
     except Exception as e:
