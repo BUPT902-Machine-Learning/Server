@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'r=wd$&&tnj#j$5n#yd57%(v-)z+lmw*nlza5&8a9qzfb32g)24'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -31,7 +31,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'werkzeug_debugger_runserver',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
