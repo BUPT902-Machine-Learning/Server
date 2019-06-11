@@ -18,7 +18,7 @@ def model_training(augment_images_info, model_id, model_type, X_train, y_train, 
                           'gamma': np.linspace(0.1, 20, 20)}
         svc = svm.SVC()
         best_svm = GridSearchCV(svc, parameters, cv=5, scoring='accuracy')
-        print("SVM model is training")
+        print("SVM model is training !")
         best_svm.fit(X_train, y_train)
         best = best_svm.best_params_
 
@@ -32,4 +32,4 @@ def model_training(augment_images_info, model_id, model_type, X_train, y_train, 
         file_name = model_id + "_svm.m"
         file_path = os.path.join(file_path, file_name)
         joblib.dump(model, file_path)
-        print("model training is finished")
+        print("model training is finished !")

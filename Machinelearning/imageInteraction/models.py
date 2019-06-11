@@ -38,7 +38,7 @@ class ImageModelBasicInfo(models.Model):
     en_name = models.CharField(max_length=20, primary_key=True)
     user_belong = models.ForeignKey(Users)
     labels = models.TextField(max_length=65535, null=True)
-    algorithm = models.CharField(max_length=10, default="CNN-SVM")
+    algorithm = models.CharField(max_length=10, default="Untrained")
     accuracy = models.FloatField(null=True)
     delete_status = models.IntegerField(verbose_name="删除状态", choices=DELETE_STATUS_CHOICES, default=0)
     public_status = models.IntegerField(verbose_name="公开状态", choices=PUBLIC_STATUS_CHOICES, default=0)
@@ -53,6 +53,7 @@ class TrainData(models.Model):
         (1, "已删除"),
         (0, "未删除")
     )
+    image_id = models.IntegerField(primary_key=True)
     user_belong = models.ForeignKey(Users)
     model_name = models.ForeignKey(ImageModelBasicInfo)
     image_name = models.TextField(max_length=65535)
