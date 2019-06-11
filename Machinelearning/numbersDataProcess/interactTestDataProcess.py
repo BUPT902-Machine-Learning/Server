@@ -6,7 +6,7 @@ def knn_test_data(raw_data):
     test_data = raw_data["testData"]
     cn_name = raw_data["modelName"]
     username = raw_data["username"]
-    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
     en_name = response.en_name
 
     save_dir = 'checkpoints/' + username + '/numbersModels/' + en_name
@@ -24,7 +24,7 @@ def knn_test_data(raw_data):
 #     test_data = raw_data["testData"]
 #     cn_name = raw_data["modelName"]
 #     username = raw_data["username"]
-#     response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+#     response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
 #     en_name = response.en_name
 #
 #     save_dir = 'checkpoints/' + username + '/numbersModels/' + en_name
@@ -54,7 +54,7 @@ def knn_test_data(raw_data):
 #     test_data = raw_data["testData"]
 #     cn_name = raw_data["modelName"]
 #     username = raw_data["username"]
-#     response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+#     response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
 #     en_name = response.en_name
 #
 #     save_dir = 'checkpoints/' + username + '/numbersModels/' + en_name

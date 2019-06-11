@@ -59,7 +59,7 @@ def text_adaptive(data):
 
     else:
         try:
-            response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+            response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
             en_name = response.en_name
 
         except Exception as e:
@@ -119,7 +119,7 @@ def numbers_adaptive(data):
 
     else:
         try:
-            response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name)
+            response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=cn_name, delete_status=0)
             en_name = response.en_name
 
         except Exception as e:

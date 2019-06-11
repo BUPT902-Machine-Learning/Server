@@ -34,7 +34,7 @@ def delete_models(username, model_name, data_type):
 
 
 def text_edit_model(username, model_name):
-    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=model_name)
+    response = TextModelBasicInfo.objects.get(user_belong=username, cn_name=model_name, delete_status=0)
     en_name = response.en_name
     algorithm = response.algorithm
 
@@ -84,7 +84,7 @@ def text_edit_model(username, model_name):
 
 
 def numbers_edit_model(username, model_name):
-    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=model_name)
+    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=model_name, delete_status=0)
     en_name = response.en_name
     algorithm = response.algorithm
 
@@ -154,7 +154,7 @@ def numbers_edit_model(username, model_name):
 
 
 def test_model_get_value(username, model_name):
-    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=model_name)
+    response = NumbersModelBasicInfo.objects.get(user_belong=username, cn_name=model_name, delete_status=0)
     en_name = response.en_name
 
     value_data = []
