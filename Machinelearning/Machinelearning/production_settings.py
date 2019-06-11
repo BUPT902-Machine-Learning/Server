@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'werkzeug_debugger_runserver',
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,12 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'textInteraction',
+    'numbersInteraction',
     'modelOperation',
     'adaptive',
     'users',
     'corsheaders',
     'classInfo',
-    'cooperation'
+    'cooperation',
+    'imageInteraction'
 ]
 
 MIDDLEWARE = [
