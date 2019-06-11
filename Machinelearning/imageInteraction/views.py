@@ -47,7 +47,7 @@ class ImageClassifierAPI:
             data = request.data
             try:
                 account = Users.objects.get(username=data['account'])
-                temp = ImageModelBasicInfo.objects.get(user_belong=account, cn_name=data['model_name'])
+                temp = ImageModelBasicInfo.objects.get(user_belong=account, cn_name=data['model_name'], delete_status=0)
                 total_count = TrainData.objects.all().count()
                 img = TrainData(user_belong=account,
                                 model_name=temp,
@@ -97,7 +97,7 @@ class ImageClassifierAPI:
                 # save in database
                 user_belong = Users.objects.get(username=data['userName'])
                 model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                             cn_name=data['modelName'])
+                                                             cn_name=data['modelName'], delete_status=0)
 
                 if model_name.labels is not None:
                     print(model_name.labels, len(model_name.labels))
@@ -140,7 +140,7 @@ class ImageClassifierAPI:
             try:
                 # delete in database
                 user_belong = Users.objects.get(username=data['userName'])
-                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=data['modelName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=data['modelName'], delete_status=0)
                 label_map = LabelMap.objects.get(model_name=model_name)
                 TrainData.objects.filter(user_belong=user_belong,
                                          model_name=model_name, label=data['label']).delete()
@@ -195,7 +195,7 @@ class ImageClassifierAPI:
                 count = ImageModelBasicInfo.objects.all().count()
                 image_model.en_name = "model" + str(count)
                 model_name_check = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                   cn_name=request.data.get('modelName'))
+                                                                   cn_name=request.data.get('modelName'), delete_status=0)
             except ImageModelBasicInfo.DoesNotExist:
                 image_model.save()
                 return Response("Create Image Model Success!")
@@ -213,7 +213,7 @@ class ImageClassifierAPI:
             try:
                 # delete in database
                 user_belong = Users.objects.get(username=request.data.get('userName'))
-                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'))
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'), delete_status=0)
                 TrainData.objects.filter(user_belong=user_belong, model_name=model_name).delete()
                 LabelMap.objects.filter(model_name=model_name).delete()
                 ImageModelBasicInfo.objects.filter(user_belong=user_belong,cn_name=request.data.get('modelName')).delete()
@@ -244,7 +244,7 @@ class ImageClassifierAPI:
             try:
                 user_belong = Users.objects.get(username=data['userName'])
                 model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                             cn_name=data['modelName'])
+                                                             cn_name=data['modelName'], delete_status=0)
                 model_file_name = model_name.en_name
                 if data['isChange'] == 0:
                     model_name.public_status = data['publicStatus']
@@ -260,7 +260,7 @@ class ImageClassifierAPI:
                     # 将标签信息同步至模型基本信息表中
                     user_belong = Users.objects.get(username=data['userName'])
                     model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                        cn_name=data['modelName'])
+                                                                        cn_name=data['modelName'], delete_status=0)
                     labels_list = data['label']
                     model_info_update.train_status = 1
                     model_info_update.public_status = data['publicStatus']
@@ -278,7 +278,7 @@ class ImageClassifierAPI:
                     for label in labels_list:
                         image_info = {
                             "model_belong": ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                            cn_name=data['modelName']).en_name,
+                                                                            cn_name=data['modelName'], delete_status=0).en_name,
                             "label_belong": label,
                             "base_path": TRAIN_DATA_ROOT,
                             "images_name": []
@@ -328,7 +328,7 @@ class ImageClassifierAPI:
             try:
                 user_belong = Users.objects.get(username=request.data.get('account'))
                 model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                    cn_name=request.data.get('modelName'))
+                                                                    cn_name=request.data.get('modelName'), delete_status=0)
                 if model_info_update.train_status == 0:
                     return Response("Model is Untrained!")
                 elif model_info_update.train_status == 1:
@@ -356,7 +356,7 @@ class ImageClassifierAPI:
             print("POST")
             user_belong = Users.objects.get(username=request.data.get('userName'))
             train_status = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                           cn_name=request.data.get('modelName')).train_status
+                                                           cn_name=request.data.get('modelName'), delete_status=0).train_status
             return Response(train_status)
 
     @api_view(['GET', 'POST'])
@@ -369,7 +369,7 @@ class ImageClassifierAPI:
             print("POST")
             print(request.data)
             user_belong = Users.objects.get(username=request.data.get('userName'))
-            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'))
+            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'), delete_status=0)
             table_data = []
             if model_info.labels is not None:
                 label_list = model_info.labels.split(",")
@@ -410,7 +410,7 @@ class ImageClassifierAPI:
                 data = request.data
                 user_belong = Users.objects.get(username=data['userName'])
                 model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                             cn_name=data['modelName'])
+                                                             cn_name=data['modelName'], delete_status=0)
                 if data['isChange'] == 0:
                     model_name.public_status = data['publicStatus']
                     model_name.save()
@@ -425,7 +425,7 @@ class ImageClassifierAPI:
                     # 将标签信息同步至模型基本信息表中
                     user_belong = Users.objects.get(username=request.data.get('userName'))
                     model_info_update = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                        cn_name=request.data.get('modelName'))
+                                                                        cn_name=request.data.get('modelName'), delete_status=0)
                     label_map = LabelMap.objects.get(model_name=model_info_update)
                     labels_list = request.data.get('label')
                     labels_to_save = ""
@@ -459,7 +459,7 @@ class ImageClassifierAPI:
                     for label in labels_list:
                         image_info = {
                             "model_belong": ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.
-                                                                            get('modelName')).en_name,
+                                                                            get('modelName'), delete_status=0).en_name,
                             "label_belong": label,
                             "base_path": TRAIN_DATA_ROOT,
                             "images_name": []
