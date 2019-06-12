@@ -42,6 +42,12 @@ def evaluate(y_preds, y_labels):
 
 
 def train(contents, labels, save_dir, k):
+    # 打乱样本与标签排序
+    state = np.random.get_state()
+    np.random.shuffle(contents)
+    np.random.set_state(state)
+    np.random.shuffle(labels)
+    sep = int(len(contents) / 3 * 2)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     model_path = os.path.join(save_dir, 'trainModel.pkl')
@@ -53,14 +59,16 @@ def train(contents, labels, save_dir, k):
         form.loc[len(form)] = [content.strip(), label]
     count = CountVectorizer(tokenizer=tokenizer)
     count_vector = count.fit_transform(form.iloc[:, 0]).toarray()
+    count_vector_train = count_vector[:sep]
+    count_vector_val = count_vector[sep:]
     joblib.dump(count.vocabulary_, tf_idf_feature_path)
     model = KNeighborsClassifier(k)
-    model.fit(count_vector, form.iloc[:, 1].values)
+    model.fit(count_vector_train, form.iloc[:sep, 1].values)
     joblib.dump(model, model_path)
     time_dif = get_time_dif(start_time)
 
-    y_evaluate = model.predict(count_vector)
-    acc_val = evaluate(y_evaluate, form.iloc[:, 1].values)
+    y_evaluate = model.predict(count_vector_val)
+    acc_val = evaluate(y_evaluate, form.iloc[sep:, 1].values)
     return acc_val, time_dif
 
 

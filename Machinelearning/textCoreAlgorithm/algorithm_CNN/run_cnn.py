@@ -74,15 +74,22 @@ def train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
 
     print("Loading training and validation data...")
     # 载入训练集与验证集
-    start_time = time.time()
 
     tra_data = train_contents
     tra_labels = labels
-    x_train, y_train = process_train_data(tra_data, tra_labels, word_to_id, cat_to_id, config.seq_length)
-    print(x_train)
-    print(y_train)
-    x_val = x_train
-    y_val = y_train
+    state = np.random.get_state()
+    np.random.shuffle(tra_data)
+    np.random.set_state(state)
+    np.random.shuffle(tra_labels)
+    sep = int(len(tra_data) / 3 * 2)
+    start_time = time.time()
+    tra_data, tra_labels = process_train_data(tra_data, tra_labels, word_to_id, cat_to_id, config.seq_length)
+    print(tra_data)
+    print(tra_labels)
+    x_train = tra_data[:sep]
+    y_train = tra_labels[:sep]
+    x_val = tra_data[sep:]
+    y_val = tra_labels[sep:]
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
@@ -117,8 +124,6 @@ def train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
                 loss_val, acc_val = evaluate(model, session, x_val, y_val)  # todo
 
                 if acc_val > best_acc_val:
-                    if acc_val > 0.95 or acc_val/loss_val > 16.0:
-                        break;
                     # 保存最好结果
                     best_acc_val = acc_val
                     last_improved = total_batch

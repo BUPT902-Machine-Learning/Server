@@ -19,3 +19,6 @@ users/migrations
 aug_images
 image_model
 media
+test.py
+server.crt
+server.key

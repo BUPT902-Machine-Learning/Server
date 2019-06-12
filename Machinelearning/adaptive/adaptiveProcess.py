@@ -54,7 +54,8 @@ def text_adaptive(data):
     if raw_train_data:
         real_labels, train_labels, train_data = transform_labels(raw_train_data)
         contents, labels = get_train_data(train_data)
-        data_count = len(contents)
+        count = len(contents)
+        data_count = count * 5
         seq_length = max_seq_length(contents)
 
     else:
@@ -66,13 +67,11 @@ def text_adaptive(data):
             return "请变更训练数据"
 
         db_operation = TextProcessData.objects.get(model_name=en_name)
-        db_train_contents = db_operation.contents
-        contents = db_train_contents.split(';')
-        data_count = len(contents)
-        seq_length = max_seq_length(contents)
+        data_count = db_operation.data_count
+        seq_length = db_operation.seq_length
 
     params = dict()
-    if data_count <= 20:
+    if data_count <= 40:
         algorithm = "KNN"
         params["k"] = int(data_count / 5) + 1
         data["params"] = params
@@ -94,7 +93,7 @@ def text_adaptive(data):
 
     else:
         algorithm = "RNN"
-        batch_size = int(data_count / 50) + 1
+        batch_size = int(data_count / 25) + 1
         num_epochs = data_count / batch_size
         params["embedding_dim"] = '-1'
         params["num_layers"] = '-1'

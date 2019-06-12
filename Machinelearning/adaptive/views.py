@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from adaptive.adaptiveProcess import text_adaptive, numbers_adaptive
+from adaptive.adaptiveProcess import text_adaptive
 import textDataProcess.interactTrainDataProcess as textTrainDataProcess
 import numbersDataProcess.interactTrainDataProcess as numbersTrainDataProcess
 
@@ -17,7 +17,6 @@ class API:
             print(request.data)
             data = request.data
             algorithm, data = text_adaptive(data)
-            print(data)
             if algorithm == "KNN":
                 k = data["params"]["k"]
                 acc, time = textTrainDataProcess.knn_train_data(data)

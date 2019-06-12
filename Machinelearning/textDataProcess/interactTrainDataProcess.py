@@ -13,6 +13,7 @@ import textCoreAlgorithm.algorithm_RNN.run_rnn as run_rnn
 # from textCoreAlgorithm.algorithm_CNN.cnn_model import TCNNConfig
 # from textCoreAlgorithm.algorithm_RNN.rnn_model import TRNNConfig
 from cooperation.models import TextCooperationModels
+from textDataEnhance.dataEnhance import data_enhance
 from textDataProcess.paramsSet import cnn_set, rnn_set, test_cnn_set, test_rnn_set
 from textInteraction.models import Users, TextModelBasicInfo, TextLabelMap, TextTrainData, TextProcessData, TextCNNParams, TextRNNParams, TextKNNParams
 from textDataProcess.dataload import build_vocab
@@ -139,13 +140,15 @@ def knn_train_data(raw_data):
             )
             db_operation.save()
 
-        contents, labels = get_train_data(train_data)
+        contents, labels, contents_user, labels_user = data_enhance(train_data)
         db_labels = separator.join(labels)
         db_data = separator.join(contents)
+        db_data_user = separator.join(contents_user)
+        db_labels_user = separator.join(labels_user)
         db_operation = TextTrainData(
             model_name=response,
-            contents=db_data,
-            labels=db_labels
+            contents=db_data_user,
+            labels=db_labels_user
         )
         db_operation.save()
         data_count = len(contents)
@@ -193,15 +196,12 @@ def knn_train_data(raw_data):
         )
         db_operation.save()
 
-    print(contents)
-    print(labels)
     acc, time_c = run_knn.train(contents, labels, save_dir, k)
-    TextModelBasicInfo.objects.filter(en_name=en_name).update(
-        accuracy=acc,
-        public_status=public_status,
-        algorithm="KNN",
-
-    )
+    db_operation = TextModelBasicInfo.objects.get(en_name=en_name)
+    db_operation.accuracy = acc
+    db_operation.public_status = public_status
+    db_operation.algorithm = "KNN"
+    db_operation.save()
     return acc, time_c
 
 
@@ -261,22 +261,25 @@ def cnn_train_data(raw_data):
             )
             db_operation.save()
 
-        contents, labels = get_train_data(train_data)
+        contents, labels, contents_user, labels_user = data_enhance(train_data)
         train_contents = build_vocab(contents, vocab_dir_txt, 5000)
         participle = '|'
         db_labels = separator.join(labels)
-        db_data = separator.join(contents)
+
+        db_data_user = separator.join(contents_user)
+        db_labels_user = separator.join(labels_user)
+
+        db_operation = TextTrainData(
+            model_name=response,
+            contents=db_data_user,
+            labels=db_labels_user
+        )
         db_contents = []
         for item in train_contents:
             db_content = participle.join(item)
             db_contents.append(db_content)
 
         db_train_contents = separator.join(db_contents)
-        db_operation = TextTrainData(
-            model_name=response,
-            contents=db_data,
-            labels=db_labels
-        )
         db_operation.save()
         data_count = len(contents)
         classes_count = len(train_labels)
@@ -348,12 +351,12 @@ def cnn_train_data(raw_data):
 
     loss1, acc, time_c = run_cnn.train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
     loss = round(loss1, 4)
-    TextModelBasicInfo.objects.filter(en_name=en_name).update(
-        accuracy=acc,
-        loss=loss,
-        public_status=public_status,
-        algorithm="CNN"
-    )
+    db_operation = TextModelBasicInfo.objects.get(en_name=en_name)
+    db_operation.accuracy = acc
+    db_operation.loss = loss
+    db_operation.public_status = public_status
+    db_operation.algorithm = "CNN"
+    db_operation.save()
     return loss, acc, time_c
 
 
@@ -413,23 +416,26 @@ def rnn_train_data(raw_data):
             )
             db_operation.save()
 
-        contents, labels = get_train_data(train_data)
+        contents, labels, contents_user, labels_user = data_enhance(train_data)
         train_contents = build_vocab(contents, vocab_dir_txt, 5000)
         participle = '|'
         db_labels = separator.join(labels)
-        db_data = separator.join(contents)
+
+        db_data_user = separator.join(contents_user)
+        db_labels_user = separator.join(labels_user)
+        db_operation = TextTrainData(
+            model_name=response,
+            contents=db_data_user,
+            labels=db_labels_user
+        )
+        db_operation.save()
+
         db_contents = []
         for item in train_contents:
             db_content = participle.join(item)
             db_contents.append(db_content)
 
         db_train_contents = separator.join(db_contents)
-        db_operation = TextTrainData(
-            model_name=response,
-            contents=db_data,
-            labels=db_labels
-        )
-        db_operation.save()
         data_count = len(contents)
         classes_count = len(train_labels)
         seq_length = max_seq_length(contents)
@@ -500,12 +506,12 @@ def rnn_train_data(raw_data):
 
     loss1, acc, time_c = run_rnn.train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
     loss = round(loss1, 4)
-    TextModelBasicInfo.objects.filter(en_name=en_name).update(
-        accuracy=acc,
-        loss=loss,
-        public_status=public_status,
-        algorithm="RNN"
-    )
+    db_operation = TextModelBasicInfo.objects.get(en_name=en_name)
+    db_operation.accuracy = acc
+    db_operation.loss = loss
+    db_operation.public_status = public_status
+    db_operation.algorithm = "RNN"
+    db_operation.save()
     return loss, acc, time_c
 
 

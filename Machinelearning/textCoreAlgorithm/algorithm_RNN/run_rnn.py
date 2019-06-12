@@ -77,13 +77,20 @@ def train(config, train_contents, train_labels, labels, save_dir, vocab_dir_txt)
 
     print("Loading training and validation data...")
     # 载入训练集与验证集
-    start_time = time.time()
 
     tra_data = train_contents
     tra_labels = labels
-    x_train, y_train = process_train_data(tra_data, tra_labels, word_to_id, cat_to_id, config.seq_length)
-    x_val = x_train
-    y_val = y_train
+    state = np.random.get_state()
+    np.random.shuffle(tra_data)
+    np.random.set_state(state)
+    np.random.shuffle(tra_labels)
+    sep = int(len(tra_data) / 3 * 2)
+    start_time = time.time()
+    tra_data, tra_labels = process_train_data(tra_data, tra_labels, word_to_id, cat_to_id, config.seq_length)
+    x_train = tra_data[:sep]
+    y_train = tra_labels[:sep]
+    x_val = tra_data[sep:]
+    y_val = tra_labels[sep:]
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
