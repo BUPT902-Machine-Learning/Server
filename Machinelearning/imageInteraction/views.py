@@ -407,7 +407,7 @@ class ImageClassifierAPI:
                 image_name = []
                 contents = []
                 image_id = []
-                images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
+                images = TrainData.objects.filter(model_name=model_info, label=label,
                                                   delete_status=0)
                 for item in images:
                     image_name.append(item.image_name)
@@ -622,6 +622,7 @@ class ImageClassifierAPI:
                 })
             except Exception as e:
                 return Response({"save_status": "failed"})
+
 
 
 
