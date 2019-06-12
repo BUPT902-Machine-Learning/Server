@@ -1,4 +1,4 @@
-from sklearn import svm
+from sklearn import svm, metrics
 import numpy as np
 from sklearn.model_selection import GridSearchCV
 from sklearn.externals import joblib
@@ -24,6 +24,8 @@ def model_training(augment_images_info, model_id, model_type, X_train, y_train, 
 
         model = svm.SVC(C=best['C'], kernel='rbf', gamma=best['gamma'])
         model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_score = metrics.accuracy_score(y_test, y_pred)
         # 模型训练完毕，保存SVM模型
         file_path = os.path.join(BASE_DIR, "image_model")
         is_path_exists = os.path.exists(file_path)
@@ -33,3 +35,4 @@ def model_training(augment_images_info, model_id, model_type, X_train, y_train, 
         file_path = os.path.join(file_path, file_name)
         joblib.dump(model, file_path)
         print("model training is finished !")
+        return y_score

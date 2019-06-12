@@ -8,6 +8,7 @@ import os
 from Machinelearning.settings import BASE_DIR
 from imageDataProcess import FeatureObtainer, DataAugmentation, FilesDelete
 from imageCoreAlgorithm import ModelTesting, ModelTraining
+import time
 from urllib import parse
 TRAIN_DATA_ROOT = os.path.join(BASE_DIR, "media").replace('\\', '/')  # media即为图片上传的根路径
 AUG_ROOT = os.path.join(BASE_DIR, "aug_images").replace('\\', '/')
@@ -185,17 +186,19 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
+            data = request.data
             try:
-                user_belong = Users.objects.get(username=request.data.get('userName'))
+                user_belong = Users.objects.get(username=data['userName'])
                 image_model = ImageModelBasicInfo(user_belong=user_belong,
-                                                  cn_name=request.data.get('modelName'),
+                                                  cn_name=data['modelName'],
                                                   delete_status=0,
                                                   train_status=0,
-                                                  model_type=1)
+                                                  model_type=data['modelType'])
                 count = ImageModelBasicInfo.objects.all().count()
                 image_model.en_name = "model" + str(count)
                 model_name_check = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                                   cn_name=request.data.get('modelName'), delete_status=0)
+                                                                   cn_name=data['modelName'], delete_status=0)
             except ImageModelBasicInfo.DoesNotExist:
                 image_model.save()
                 return Response("Create Image Model Success!")
@@ -210,13 +213,18 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
+            print(request.data)
+            data = request.data
             try:
                 # delete in database
-                user_belong = Users.objects.get(username=request.data.get('userName'))
-                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'), delete_status=0)
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                             cn_name=data['modelName'],
+                                                             delete_status=0)
                 TrainData.objects.filter(user_belong=user_belong, model_name=model_name).delete()
                 LabelMap.objects.filter(model_name=model_name).delete()
-                ImageModelBasicInfo.objects.filter(user_belong=user_belong,cn_name=request.data.get('modelName')).delete()
+                ImageModelBasicInfo.objects.filter(user_belong=user_belong,
+                                                   cn_name=data['modelName']).delete()
                 # print("test")
                 # delete the files
                 model_file_name = model_name.en_name
@@ -242,6 +250,7 @@ class ImageClassifierAPI:
             data = request.data
             # 提交标签信息以及训练指令
             try:
+                time_start = time.time()
                 user_belong = Users.objects.get(username=data['userName'])
                 model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                              cn_name=data['modelName'], delete_status=0)
@@ -306,14 +315,24 @@ class ImageClassifierAPI:
                         pre_train_model_type = "VGG16"
                         X_train, y_train, X_test, y_test = FeatureObtainer.feature_obtainer(augment_images_info, pre_train_model_type, y_dict)
                         model_type = "SVM"
-                        ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"], model_type, X_train, y_train, X_test, y_test)
+                        train_acc = ModelTraining.model_training(augment_images_info,
+                                                                 images_info[0]["model_belong"],
+                                                                 model_type,
+                                                                 X_train, y_train, X_test, y_test)
                         model_info_update.train_status = 2
                         model_info_update.algorithm = "CNN-SVM"
                         model_info_update.save()
-
-                    return Response("Model Training Success!")
+                        time_end = time.time()
+                        train_time = round(time_end - time_start, 1)
+                    return Response({
+                        "train_result": "Success",
+                        "train_time": train_time,
+                        "train_acc": train_acc
+                    })
             except Exception as e:
-                return Response("Model Training Error!")
+                return Response({
+                        "train_result": "Failed"
+                    })
 
     @api_view(['GET', 'POST'])
     def test_model(request, format=None):
@@ -406,6 +425,7 @@ class ImageClassifierAPI:
             print("POST")
             # 提交标签信息以及训练指令
             try:
+                time_start = time.time()
                 print(request.data)
                 data = request.data
                 user_belong = Users.objects.get(username=data['userName'])
@@ -488,14 +508,23 @@ class ImageClassifierAPI:
                         X_train, y_train, X_test, y_test = FeatureObtainer.feature_obtainer(augment_images_info,
                                                                                             pre_train_model_type, y_dict)
                         model_type = "SVM"
-                        ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"], model_type,
-                                                     X_train, y_train, X_test, y_test)
+                        train_acc = ModelTraining.model_training(augment_images_info, images_info[0]["model_belong"],
+                                                                 model_type,
+                                                                 X_train, y_train, X_test, y_test)
                         model_info_update.train_status = 2
                         model_info_update.algorithm = "CNN-SVM"
                         model_info_update.save()
-                    return Response("Model Re-Training Success!")
+                        time_end = time.time()
+                        train_time = round(time_end - time_start, 1)
+                    return Response({
+                        "train_result": "Success",
+                        "train_time": train_time,
+                        "train_acc": train_acc
+                    })
             except Exception as e:
-                return Response("Model Re-Training Error!")
+                return Response({
+                        "train_result": "Failed"
+                    })
 
 
 
