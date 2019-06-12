@@ -286,7 +286,7 @@ class API:
                 create_models.append(model)
 
             db_models = ImageModelBasicInfo.objects.filter(user_belong=user.teacher_name, delete_status=0,
-                                                          model_type=0)
+                                                           model_type=0, public_status=1)
             for item in db_models:
                 model = {}
                 data_create = utc2local(item.data_create)

@@ -173,10 +173,9 @@ class ImageClassifierAPI:
                         os.remove(delete_img)
                         delete_list.remove(delete_list[0])
                     os.rmdir(file_path)
-                    return Response("Delete Label Success")
             except Exception as e:
                 return Response("Delete Label Failed")
-            return Response("Unknown Error")
+            return Response("Delete Label Success")
 
     @api_view(['GET', 'POST'])
     def create_model(request, format=None):
@@ -373,10 +372,16 @@ class ImageClassifierAPI:
 
         elif request.method == 'POST':
             print("POST")
-            user_belong = Users.objects.get(username=request.data.get('userName'))
+            user_belong = Users.objects.get(username=request.data.get('username'))
             train_status = ImageModelBasicInfo.objects.get(user_belong=user_belong,
-                                                           cn_name=request.data.get('modelName'), delete_status=0).train_status
-            return Response(train_status)
+                                                           cn_name=request.data.get('modelName'),
+                                                           delete_status=0).train_status
+            if train_status == 2:
+                return Response("模型已训练")
+            elif train_status == 1:
+                return Response("模型训练中")
+            else:
+                return Response("模型未训练")
 
     @api_view(['GET', 'POST'])
     def edit_img_model(request, format=None):
@@ -387,8 +392,11 @@ class ImageClassifierAPI:
         elif request.method == 'POST':
             print("POST")
             print(request.data)
-            user_belong = Users.objects.get(username=request.data.get('userName'))
-            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=request.data.get('modelName'), delete_status=0)
+            data = request.data
+            user_belong = Users.objects.get(username=data['userName'])
+            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                         cn_name=data['modelName'],
+                                                         delete_status=0)
             table_data = []
             if model_info.labels is not None:
                 label_list = model_info.labels.split(",")
@@ -525,6 +533,63 @@ class ImageClassifierAPI:
                 return Response({
                         "train_result": "Failed"
                     })
+
+    @api_view(['GET', 'POST'])
+    def publish_img_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            try:
+                user_belong = Users.objects.get(username=data['userName'])
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                             cn_name=data['modelName'], delete_status=0)
+                model_name.public_status = data['publicStatus']
+                model_name.save()
+                return Response("Publish Success!")
+            except Exception as e:
+                return Response("Publish Failed!")
+
+    @api_view(['GET', 'POST'])
+    def edit_stu_img_model(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            user_belong = Users.objects.get(username=data['userName'])
+            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+                                                         cn_name=data['modelName'],
+                                                         delete_status=0)
+            table_data = []
+            if model_info.labels is not None:
+                label_list = model_info.labels.split(",")
+            else:
+                label_list = []
+            for label in label_list:
+                label_data = {}
+                image_name = []
+                contents = []
+                image_id = []
+                images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
+                                                  delete_status=0)
+                for item in images:
+                    image_name.append(item.image_name)
+                    contents.append("http://www.localhost.com:8082" + item.content.url)
+                    image_id.append(item.image_id)
+                label_data["label"] = label
+                label_data["image_name"] = image_name
+                label_data["contents"] = contents
+                label_data["image_id"] = image_id
+                table_data.append(label_data)
+            return Response({"tableData": table_data})
 
 
 
