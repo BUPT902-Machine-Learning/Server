@@ -59,25 +59,34 @@ class API:
 
             except Exception as e:
                 return Response({
-                    "code": -2,
-                    "message": "请求错误",
+                    "code": -1,
+                    "message": "查询失败，请用户重新登录"
                 })
 
-            if True:
-                if no_user is True:
-                    db_operate = Users(
-                        username=username,
-                        token=token
-                    )
-                    db_operate.save()
-                else:
-                    Users.objects.filter(username=username).update(
-                        token=token
-                    )
+            if res_data["status"] != 1:
+                return Response({
+                    "code": -2,
+                    "message": "登录信息无效，请重新登录"
+                })
 
-                if role == "teacher":
+            if no_user is True:
+                print(res_data)
+                print("username")
+                print(username)
+                db_operate = Users(
+                    username=username,
+                    token=token
+                )
+                db_operate.save()
+            else:
+                Users.objects.filter(username=username).update(
+                    token=token
+                )
+
+            if role == "teacher":
+                if class_no and class_no != '0':
                     try:
-                        response = Teacher.objects.get(teacher_name=username)
+                        Teacher.objects.get(teacher_name=username)
 
                     except Exception as e:
                         db_operate = Teacher(
@@ -85,9 +94,10 @@ class API:
                             class_no=class_no
                         )
                         db_operate.save()
-                else:
+            else:
+                if class_no and class_no != '0':
                     try:
-                        response = Student.objects.get(student_name=username)
+                        Student.objects.get(student_name=username)
 
                     except Exception as e:
                         db_operate = Student(
@@ -96,13 +106,7 @@ class API:
                         )
                         db_operate.save()
 
-                return Response({
-                    "code": 1,
-                    "message": "成功",
-                })
-
-            else:
-                return Response({
-                    "code": -1,
-                    "message": "失败",
-                })
+            return Response({
+                "code": 1,
+                "message": "成功",
+            })
