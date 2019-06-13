@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^editImgModel/$', image_interaction_views.ImageClassifierAPI.edit_img_model),
     url(r'^reTrainImgModel/$', image_interaction_views.ImageClassifierAPI.re_train_img_model),
     url(r'^publishImgModel/$', image_interaction_views.ImageClassifierAPI.publish_img_model),
-    url(r'^editStuImgModel/$', image_interaction_views.ImageClassifierAPI.edit_stu_img_model)
+    url(r'^editStuImgModel/$', image_interaction_views.ImageClassifierAPI.edit_stu_img_model),
+    url(r'^stuUploadImg/$', image_interaction_views.ImageClassifierAPI.stu_save_data)
 
 ]

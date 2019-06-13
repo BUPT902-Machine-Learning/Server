@@ -141,10 +141,10 @@ class ImageClassifierAPI:
             try:
                 # delete in database
                 user_belong = Users.objects.get(username=data['userName'])
-                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=data['modelName'], delete_status=0)
+                model_name = ImageModelBasicInfo.objects.get(user_belong=user_belong, cn_name=data['modelName'],
+                                                             delete_status=0)
                 label_map = LabelMap.objects.get(model_name=model_name)
-                TrainData.objects.filter(user_belong=user_belong,
-                                         model_name=model_name, label=data['label']).delete()
+                TrainData.objects.filter(model_name=model_name, label=data['label']).delete()
                 label_list = model_name.labels.split(",")
                 if label_list.count(data['label']) == 1:
                     label_list.remove(data['label'])
@@ -393,7 +393,7 @@ class ImageClassifierAPI:
             print("POST")
             print(request.data)
             data = request.data
-            user_belong = Users.objects.get(username=data['userName'])
+            user_belong = Users.objects.get(username=data['username'])
             model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong,
                                                          cn_name=data['modelName'],
                                                          delete_status=0)
@@ -407,7 +407,7 @@ class ImageClassifierAPI:
                 image_name = []
                 contents = []
                 image_id = []
-                images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
+                images = TrainData.objects.filter(model_name=model_info, label=label,
                                                   delete_status=0)
                 for item in images:
                     image_name.append(item.image_name)
@@ -564,10 +564,11 @@ class ImageClassifierAPI:
             print("POST")
             print(request.data)
             data = request.data
-            user_belong = Users.objects.get(username=data['userName'])
-            model_info = ImageModelBasicInfo.objects.get(user_belong=user_belong,
+            teacher_belong = Users.objects.get(username=data['teacherName'])
+            model_info = ImageModelBasicInfo.objects.get(user_belong=teacher_belong,
                                                          cn_name=data['modelName'],
                                                          delete_status=0)
+            student_belong = Users.objects.get(username=data['studentName'])
             table_data = []
             if model_info.labels is not None:
                 label_list = model_info.labels.split(",")
@@ -578,7 +579,7 @@ class ImageClassifierAPI:
                 image_name = []
                 contents = []
                 image_id = []
-                images = TrainData.objects.filter(user_belong=user_belong, model_name=model_info, label=label,
+                images = TrainData.objects.filter(user_belong=student_belong, model_name=model_info, label=label,
                                                   delete_status=0)
                 for item in images:
                     image_name.append(item.image_name)
@@ -590,6 +591,38 @@ class ImageClassifierAPI:
                 label_data["image_id"] = image_id
                 table_data.append(label_data)
             return Response({"tableData": table_data})
+
+    @api_view(['GET', 'POST'])
+    def stu_save_data(request, format=None):
+        if request.method == 'GET':
+            print("GET")
+            return Response()
+
+        elif request.method == 'POST':
+            print("POST")
+            print(request.data)
+            data = request.data
+            try:
+                teacher_belong = Users.objects.get(username=data['model_builder'])
+                student_belong = Users.objects.get(username=data['student_name'])
+                temp = ImageModelBasicInfo.objects.get(user_belong=teacher_belong, cn_name=data['model_name'], delete_status=0)
+                total_count = TrainData.objects.all().count()
+                img = TrainData(user_belong=student_belong,
+                                model_name=temp,
+                                image_id=total_count,
+                                label=data['label'],
+                                delete_status=data['delete'],
+                                content=data['image'],
+                                image_name=data['image_name'])
+
+                img.save()
+                return Response({
+                    "save_status": "success",
+                    "image_id": total_count
+                })
+            except Exception as e:
+                return Response({"save_status": "failed"})
+
 
 
 
