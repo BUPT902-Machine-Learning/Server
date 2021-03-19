@@ -4,5 +4,5 @@ jieba==0.39
 tensorflow==1.10.0
 matplotlib==2.2.3
 numpy==1.15.2
-djangorestframework==3.9.1
+djangorestframework==3.11.2
 scikit_learn==0.20.2
